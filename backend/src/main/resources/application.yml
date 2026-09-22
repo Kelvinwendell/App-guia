@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: aguia-inova-api
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/aguiainova}
+  data:
+    mongodb:
+      auto-index-creation: true
+      representation:
+        big-decimal: decimal128
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+app:
+  jwt:
+    # HS256 exige no minimo 32 bytes. Em producao SEMPRE defina JWT_SECRET.
+    secret: ${JWT_SECRET:aguia-inova-dev-secret-troque-em-producao-0123456789}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+    issuer: aguia-inova-api
+  security:
+    # true = o cadastro publico aceita escolher o perfil (comportamento do app da Sprint 1).
+    # false = todo cadastro publico vira OPERADOR e so a LIDERANCA promove usuarios.
+    allow-role-selection: ${APP_ALLOW_ROLE_SELECTION:true}
+  seed:
+    # Cria usuarios de teste e dados de exemplo quando o banco esta vazio.
+    enabled: ${APP_SEED_ENABLED:true}
+  ai:
+    enabled: ${AI_ENABLED:true}
+    # gemini = Google Gemini API | openai = qualquer API compativel com OpenAI (OpenRouter, GitHub Models...)
+    provider: ${AI_PROVIDER:gemini}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:gemini-3.6-flash}
+    # vazio = URL padrao do provedor
+    base-url: ${AI_BASE_URL:}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:30}

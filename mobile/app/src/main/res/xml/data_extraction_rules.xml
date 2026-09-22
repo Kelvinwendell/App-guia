@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backup em nuvem e transferencia entre aparelhos (Android 12+): a sessao (token JWT) fica de fora. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="sessao.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="sessao.xml" />
+    </device-transfer>
+</data-extraction-rules>

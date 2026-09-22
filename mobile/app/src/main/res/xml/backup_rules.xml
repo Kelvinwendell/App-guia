@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backup automatico (Android 11 e anteriores): a sessao (token JWT) nunca sai do aparelho. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="sessao.xml" />
+</full-backup-content>

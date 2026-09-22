@@ -1,0 +1,15 @@
+# segredos e configuracao local
+.env
+local.properties
+
+# build
+**/target/
+**/build/
+.gradle/
+.kotlin/
+
+# IDEs e SO
+.idea/
+*.iml
+.vscode/
+.DS_Store
