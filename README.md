@@ -1,4 +1,4 @@
-# Águia Inova — Sprint 2 (Backend + App integrados)
+# Águia Inova Sprint 2 (Backend + App integrados)
 
 Gestão da inovação empresarial: operadores registram **ideias**, gestores as avaliam e transformam em **projetos**, e a
 liderança define **estratégias** e acompanha o **dashboard** (ROI, lucro, prazo, investimento, produtividade).
