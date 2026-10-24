@@ -1,0 +1,55 @@
+name: Mobile CI
+
+on:
+  push:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Testes unitarios do mobile
+        working-directory: mobile
+        run: ./gradlew testDebugUnitTest --console=plain
+
+      - name: Lint do mobile
+        working-directory: mobile
+        run: ./gradlew lintDebug --console=plain
+
+      - name: Build debug do mobile
+        working-directory: mobile
+        run: ./gradlew assembleDebug --console=plain
+
+      - name: Publicar APK debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: mobile/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: ignore
+
+      - name: Publicar relatorios de teste e lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-mobile
+          path: |
+            mobile/app/build/reports/tests
+            mobile/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
