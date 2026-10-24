@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import java.util.Locale
 
 /** Formatacao de numeros e datas no padrao brasileiro, num unico lugar (antes cada tela montava o proprio texto). */
@@ -13,6 +14,11 @@ object Formatadores {
 
     private val ptBr: Locale = Locale.forLanguageTag("pt-BR")
     private val dataBr: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    /**
+     * Para o que a pessoa digita: resolucao ESTRITA. Com a padrao (SMART), "31/02/2027" virava 28/02/2027 sem aviso e
+     * o projeto era salvo com um prazo que ninguem escolheu. "uuuu" porque o modo estrito exige ano sem era.
+     */
+    private val dataDigitada: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
     private val dataHoraBr: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
     private val mesAbreviado: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM/yy", ptBr)
 
@@ -59,7 +65,7 @@ object Formatadores {
 
     /** dd/MM/yyyy digitado pelo usuario -> yyyy-MM-dd, ou nulo se a data nao existir. */
     fun dataIsoDeDigitada(texto: String): String? =
-        runCatching { LocalDate.parse(texto.trim(), dataBr).toString() }.getOrNull()
+        runCatching { LocalDate.parse(texto.trim(), dataDigitada).toString() }.getOrNull()
 
     /**
      * Aceita o formato brasileiro (1.234,56) e o internacional (1234.56). Com virgula, o ponto e separador de milhar;
