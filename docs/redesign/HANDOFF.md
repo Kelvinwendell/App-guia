@@ -59,7 +59,7 @@ Ordem sugerida de merge: #13 → #14 → #17 → #15 → #16.
 - Gradle falha com `Unable to establish loopback connection` se o temp do sistema não for acessível: exporte
   `TEMP=C:\gtmp TMP=C:\gtmp JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=C:\gtmp -Djava.io.tmpdir=C:\gtmp"` e
   `JAVA_HOME` do JBR do Android Studio.
-- API local: MongoDB 7.0 em `C:erramentas\mongodb-win32-x86_64-windows-7.0.14` (`mongod --dbpath C:erramentas\mongo-data`),
+- API local: MongoDB 7.0 em `C:\ferramentas\mongodb-win32-x86_64-windows-7.0.14` (`mongod --dbpath C:\ferramentas\mongo-data`),
   backend com JDK 25 (`~/.jdks/jdk-25/jdk-25.0.2`) e um `JWT_SECRET` próprio (o valor-padrão público é recusado).
 - Emulador `aguia_test`. O APK de **release** instalado aponta para produção; para testar contra a API local é preciso
   desinstalar e instalar o **debug** (assinaturas diferentes).
