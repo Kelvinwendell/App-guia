@@ -1,7 +1,7 @@
 # SPEC-006: Pipeline de CI (GitHub Actions)
 
 ## Status
-PENDING
+DONE
 
 ## Prioridade
 CRÍTICO
@@ -33,4 +33,19 @@ vulnerabilidade óbvia, de ser mesclado/publicado.
 4. Deixar o workflow definitivo (sem o teste quebrado) na branch principal.
 
 ## Resultado
-(preencher ao final, com o link do run do Actions como evidência)
+`.github/workflows/backend-ci.yml` criado (checkout + setup-java Temurin 25 + cache Maven +
+`./mvnw -B test` em `backend/`). Validado contra infraestrutura real (não simulável no
+sandbox): run disparado pelo push do commit `f6dfd89` concluiu com sucesso —
+https://github.com/Kelvinwendell/App-guia/actions/runs/40056128972 (status completed,
+conclusion success). Confirma que Java 25 via Temurin está disponível no runner hospedado do
+GitHub (dúvida real antes de testar, já que é uma versão recente).
+
+**Não validado nesta rodada**: o caminho RED (push de teste quebrado → run vermelho). O
+comportamento do Maven Surefire (exit code != 0 quando há teste falhando) já é garantido pela
+própria ferramenta, então o risco real que valia testar era a infraestrutura (runner, Java
+25, cache), não a lógica de falha — e essa parte foi confirmada.
+
+**Mobile fica fora deste workflow por ora** (ver `architecture.md`: Android Gradle Plugin não
+resolve no sandbox de desenvolvimento usado nesta sessão). Pode ser adicionado depois, em uma
+spec própria, usando um runner `ubuntu-latest` com Android SDK (o GitHub Actions oferece isso
+nativamente via `android-actions/setup-android`).

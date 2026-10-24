@@ -1,7 +1,7 @@
 # SPEC-005: Índices em campos usados em filtro/ordenação
 
 ## Status
-PENDING
+DONE
 
 ## Prioridade
 IMPORTANTE
@@ -31,4 +31,11 @@ frequência (`IdeiaService.listar`, `ProjetoService.listar`, `EstrategiaService`
 3. **REGRESSÃO**: suíte completa verde.
 
 ## Resultado
-(preencher ao final do ciclo TDD, com números reais de execução)
+RED confirmado em `IndicesDeConsultaIT` (4 testes, via `mongo.indexOps(colecao).getIndexInfo()`
+— confirma o índice no banco de verdade, não só a anotação no código). GREEN: `@Indexed` em
+`Ideia.status`, `Projeto.status`, `Projeto.etapa`, `Estrategia.status`.
+`spring.data.mongodb.auto-index-creation=true` (já ativo) cria os índices no boot, sem
+configuração adicional. `criadoEm` não precisou de índice próprio nesta rodada — fica para
+quando um `@CompoundIndex` (status+criadoEm) fizer sentido, se o volume de dados justificar.
+
+Suíte completa: 271/271 verdes.

@@ -10,8 +10,8 @@ Atualizado a cada ciclo do loop de TDD. Ordem = prioridade de execução.
 | [002](specs/002-seed-fail-safe-default.md) | Seed fail-safe por padrão | CRÍTICO | DONE |
 | [003](specs/003-rate-limiting.md) | Rate limiting login + IA | CRÍTICO | DONE (escopo reduzido) |
 | [004](specs/004-dashboard-pagination.md) | Dashboard sem findAll() irrestrito | CRÍTICO | PENDING |
-| [006](specs/006-ci-pipeline.md) | Pipeline de CI (GitHub Actions) | CRÍTICO | PENDING |
-| [005](specs/005-missing-indexes.md) | Índices em status/etapa/criadoEm | IMPORTANTE | PENDING |
+| [006](specs/006-ci-pipeline.md) | Pipeline de CI (GitHub Actions) | CRÍTICO | DONE |
+| [005](specs/005-missing-indexes.md) | Índices em status/etapa/criadoEm | IMPORTANTE | DONE |
 | [012](specs/012-query-builder-dedup.md) | Helper comum de filtro dinâmico | BOM TER | PENDING |
 
 ## Autônomas no código, mas não verificáveis neste sandbox (sem Android SDK)
