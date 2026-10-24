@@ -53,40 +53,18 @@ fun LoginScreen(aoEntrar: (Perfil) -> Unit, aoCriarConta: () -> Unit) {
         aviso = aviso,
         aoAvisoLido = vm::avisoLido
     ) { modificador ->
-        Column(
-            modificador.verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Spacer(Modifier.height(24.dp))
-            Box(
-                Modifier.size(64.dp).clip(RoundedCornerShape(20.dp)).background(AguiaCores.Primaria.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = AguiaCores.Primaria, modifier = Modifier.size(32.dp))
-            }
-            Text("Grandes mudanças começam com uma ideia.", style = MaterialTheme.typography.headlineMedium)
-            Text(
-                "Entre para conectar ideias, acompanhar projetos e transformar resultados.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            CampoTexto(email, { email = it }, "E-mail", teclado = KeyboardType.Email)
-            CampoTexto(senha, { senha = it }, "Senha", senha = true)
-            Spacer(Modifier.height(4.dp))
-            BotaoPrimario("Entrar", aoClicar = { vm.entrar(email, senha, aoEntrar) }, carregando = ocupado)
-            TextButton(onClick = aoCriarConta, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("Criar conta")
-            }
-            if (vm.servidorEditavel) {
-                TextButton(
-                    onClick = { editandoServidor = true },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("Servidor: $url")
-                }
-            }
-        }
+        LoginConteudo(
+            email = email,
+            aoMudarEmail = { email = it },
+            senha = senha,
+            aoMudarSenha = { senha = it },
+            ocupado = ocupado,
+            aoEntrar = { vm.entrar(email, senha, aoEntrar) },
+            aoCriarConta = aoCriarConta,
+            servidor = url.takeIf { vm.servidorEditavel },
+            aoEditarServidor = { editandoServidor = true },
+            modifier = modificador
+        )
     }
 
     if (vm.servidorEditavel && editandoServidor) {
@@ -99,6 +77,56 @@ fun LoginScreen(aoEntrar: (Perfil) -> Unit, aoCriarConta: () -> Unit) {
             },
             aoCancelar = { editandoServidor = false }
         )
+    }
+}
+
+/**
+ * O formulario de login sem ViewModel nem navegacao, para teste. [servidor] nulo esconde a troca de servidor (release).
+ * O "Concluir" do teclado no campo de senha entra direto, igual ao botao.
+ */
+@Composable
+internal fun LoginConteudo(
+    email: String,
+    aoMudarEmail: (String) -> Unit,
+    senha: String,
+    aoMudarSenha: (String) -> Unit,
+    ocupado: Boolean,
+    aoEntrar: () -> Unit,
+    aoCriarConta: () -> Unit,
+    servidor: String?,
+    aoEditarServidor: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(Modifier.height(24.dp))
+        Box(
+            Modifier.size(64.dp).clip(RoundedCornerShape(20.dp)).background(AguiaCores.Primaria.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = AguiaCores.Primaria, modifier = Modifier.size(32.dp))
+        }
+        Text("Grandes mudanças começam com uma ideia.", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "Entre para conectar ideias, acompanhar projetos e transformar resultados.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        CampoTexto(email, aoMudarEmail, "E-mail", teclado = KeyboardType.Email)
+        CampoTexto(senha, aoMudarSenha, "Senha", senha = true, aoConcluir = aoEntrar)
+        Spacer(Modifier.height(4.dp))
+        BotaoPrimario("Entrar", aoClicar = aoEntrar, carregando = ocupado)
+        TextButton(onClick = aoCriarConta, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text("Criar conta")
+        }
+        if (servidor != null) {
+            TextButton(onClick = aoEditarServidor, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("Servidor: $servidor")
+            }
+        }
     }
 }
 

@@ -19,6 +19,8 @@ class AuthViewModel(
     val servidorEditavel: Boolean = servidor.editavel()
 
     fun entrar(email: String, senha: String, aoEntrar: (Perfil) -> Unit) {
+        // Teclado ("Concluir") e botao podem disparar juntos: uma tentativa de login por vez.
+        if (ocupado.value) return
         if (email.isBlank() || senha.isBlank()) {
             avisar("Informe e-mail e senha.")
             return
@@ -27,6 +29,7 @@ class AuthViewModel(
     }
 
     fun cadastrar(novo: NovoUsuario, aoCadastrar: () -> Unit) {
+        if (ocupado.value) return
         val dadosValidos = novo.nome.isNotBlank() && novo.email.isNotBlank() && novo.senha.length >= TAMANHO_MINIMO_SENHA
         if (!dadosValidos) {
             avisar("Preencha nome, e-mail e uma senha com ao menos $TAMANHO_MINIMO_SENHA caracteres.")
