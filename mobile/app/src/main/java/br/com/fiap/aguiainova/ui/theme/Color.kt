@@ -3,31 +3,17 @@ package br.com.fiap.aguiainova.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Cores de marca/status do app — propositalmente as mesmas no tema claro e no escuro, para manter o
- * significado visual (sucesso/alerta/erro) reconhecivel nos dois. Fundo, superficie, borda e texto
- * secundario variam por tema: ficam em [NeutrosEscuro]/[NeutrosClaro], usados em Theme.kt.
+ * Paleta unica do app. Dark-only por decisao de produto (ver docs/redesign/PRD.md, "Nao objetivos":
+ * nao criar tema claro) — valores definidos em docs/redesign/specs/001-fundacoes-visuais.md.
  */
 object AguiaCores {
-    val Primaria = Color(0xFF00A8E8)
-    val Sucesso = Color(0xFF00D09C)
-    val Alerta = Color(0xFFFFB703)
-    val Erro = Color(0xFFE63946)
-}
-
-/** Tons neutros do tema escuro (padrao atual do app). */
-internal object NeutrosEscuro {
-    val Fundo = Color(0xFF0F172A)
-    val Superficie = Color(0xFF16213E)
-    val SuperficieElevada = Color(0xFF1E2A4A)
-    val Borda = Color(0xFF3A4668)
-    val TextoSecundario = Color(0xFFB0B8C8)
-}
-
-/** Tons neutros do tema claro. */
-internal object NeutrosClaro {
-    val Fundo = Color(0xFFF7F9FC)
-    val Superficie = Color(0xFFFFFFFF)
-    val SuperficieElevada = Color(0xFFEEF1F7)
-    val Borda = Color(0xFFD9DEE8)
-    val TextoSecundario = Color(0xFF5C6477)
+    val Fundo = Color(0xFF0B1220)
+    val Superficie = Color(0xFF131F32)
+    val SuperficieElevada = Color(0xFF1A2B43)
+    val Borda = Color(0xFF2A3C55)
+    val Primaria = Color(0xFF53C7F5)
+    val Sucesso = Color(0xFF55D9B1)
+    val Alerta = Color(0xFFFFCF70)
+    val Erro = Color(0xFFFF8892)
+    val TextoSecundario = Color(0xFFA7B7CC)
 }

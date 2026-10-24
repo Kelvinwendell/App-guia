@@ -1,6 +1,5 @@
 package br.com.fiap.aguiainova.ui.theme
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
 import br.com.fiap.aguiainova.domain.model.Prioridade
@@ -8,18 +7,13 @@ import br.com.fiap.aguiainova.domain.model.StatusEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusIdeia
 import br.com.fiap.aguiainova.domain.model.StatusProjeto
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/**
- * Cor de cada status/prioridade do dominio (CoresDeDominio.kt). Os casos "neutros" (Estrategia
- * Encerrada, Projeto Pausado) passaram a ler MaterialTheme.colorScheme.onSurfaceVariant para
- * acompanhar o tema claro/escuro, em vez da cor fixa que so fazia sentido no tema escuro original.
- */
+/** Cor de cada status/prioridade do dominio (CoresDeDominio.kt). */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CoresDeDominioTest {
@@ -28,7 +22,7 @@ class CoresDeDominioTest {
     val compose = createComposeRule()
 
     @Test
-    fun statusIdeiaUsaCoresDeMarcaFixas() {
+    fun statusIdeiaUsaCoresDeMarca() {
         var aprovada: Color? = null
         var rejeitada: Color? = null
         var emAnalise: Color? = null
@@ -47,7 +41,7 @@ class CoresDeDominioTest {
     }
 
     @Test
-    fun prioridadeUsaCoresDeMarcaFixas() {
+    fun prioridadeUsaCoresDeMarca() {
         var alta: Color? = null
         var media: Color? = null
         var baixa: Color? = null
@@ -66,66 +60,34 @@ class CoresDeDominioTest {
     }
 
     @Test
-    fun statusEstrategiaVigenteUsaCorDeMarcaFixaNosDoisTemas() {
-        var vigenteClaro: Color? = null
-        var vigenteEscuro: Color? = null
+    fun statusEstrategiaUsaCorDeMarcaOuTextoSecundario() {
+        var vigente: Color? = null
+        var encerrada: Color? = null
         compose.setContent {
-            Column {
-                AguiaTheme(escuroForcado = false) { vigenteClaro = StatusEstrategia.VIGENTE.cor() }
-                AguiaTheme(escuroForcado = true) { vigenteEscuro = StatusEstrategia.VIGENTE.cor() }
+            AguiaTheme {
+                vigente = StatusEstrategia.VIGENTE.cor()
+                encerrada = StatusEstrategia.ENCERRADA.cor()
             }
         }
         compose.waitForIdle()
 
-        assertEquals(AguiaCores.Sucesso, vigenteClaro)
-        assertEquals(AguiaCores.Sucesso, vigenteEscuro)
+        assertEquals(AguiaCores.Sucesso, vigente)
+        assertEquals(AguiaCores.TextoSecundario, encerrada)
     }
 
     @Test
-    fun statusEstrategiaEncerradaAcompanhaOTema() {
-        var encerradaClara: Color? = null
-        var encerradaEscura: Color? = null
-        compose.setContent {
-            Column {
-                AguiaTheme(escuroForcado = false) { encerradaClara = StatusEstrategia.ENCERRADA.cor() }
-                AguiaTheme(escuroForcado = true) { encerradaEscura = StatusEstrategia.ENCERRADA.cor() }
-            }
-        }
-        compose.waitForIdle()
-
-        assertEquals(NeutrosClaro.TextoSecundario, encerradaClara)
-        assertEquals(NeutrosEscuro.TextoSecundario, encerradaEscura)
-        assertNotEquals(encerradaClara, encerradaEscura)
-    }
-
-    @Test
-    fun statusProjetoPausadoAcompanhaOTema() {
-        var pausadoClaro: Color? = null
-        var pausadoEscuro: Color? = null
-        compose.setContent {
-            Column {
-                AguiaTheme(escuroForcado = false) { pausadoClaro = StatusProjeto.PAUSADO.cor() }
-                AguiaTheme(escuroForcado = true) { pausadoEscuro = StatusProjeto.PAUSADO.cor() }
-            }
-        }
-        compose.waitForIdle()
-
-        assertEquals(NeutrosClaro.TextoSecundario, pausadoClaro)
-        assertEquals(NeutrosEscuro.TextoSecundario, pausadoEscuro)
-        assertNotEquals(pausadoClaro, pausadoEscuro)
-    }
-
-    @Test
-    fun statusProjetoUsaCoresDeMarcaFixasNosOutrosCasos() {
+    fun statusProjetoUsaCorDeMarcaOuTextoSecundario() {
         var emAndamento: Color? = null
         var concluido: Color? = null
         var planejamento: Color? = null
+        var pausado: Color? = null
         var cancelado: Color? = null
         compose.setContent {
             AguiaTheme {
                 emAndamento = StatusProjeto.EM_ANDAMENTO.cor()
                 concluido = StatusProjeto.CONCLUIDO.cor()
                 planejamento = StatusProjeto.PLANEJAMENTO.cor()
+                pausado = StatusProjeto.PAUSADO.cor()
                 cancelado = StatusProjeto.CANCELADO.cor()
             }
         }
@@ -134,6 +96,7 @@ class CoresDeDominioTest {
         assertEquals(AguiaCores.Primaria, emAndamento)
         assertEquals(AguiaCores.Sucesso, concluido)
         assertEquals(AguiaCores.Alerta, planejamento)
+        assertEquals(AguiaCores.TextoSecundario, pausado)
         assertEquals(AguiaCores.Erro, cancelado)
     }
 }
