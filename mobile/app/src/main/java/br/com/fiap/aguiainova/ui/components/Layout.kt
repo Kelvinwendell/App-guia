@@ -180,8 +180,8 @@ fun BarraInferior(perfil: Perfil, navController: NavController) {
                     selectedIconColor = AguiaCores.Primaria,
                     selectedTextColor = AguiaCores.Primaria,
                     indicatorColor = MaterialTheme.colorScheme.background,
-                    unselectedIconColor = AguiaCores.TextoSecundario,
-                    unselectedTextColor = AguiaCores.TextoSecundario
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
