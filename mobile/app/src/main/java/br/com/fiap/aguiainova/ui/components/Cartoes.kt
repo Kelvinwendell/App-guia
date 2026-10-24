@@ -123,7 +123,7 @@ fun BarraProgresso(progresso: Int, modifier: Modifier = Modifier) {
         progress = { (progresso / 100f).coerceIn(0f, 1f) },
         modifier = modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
         color = AguiaCores.Primaria,
-        trackColor = AguiaCores.Borda
+        trackColor = MaterialTheme.colorScheme.outline
     )
 }
 

@@ -42,7 +42,7 @@ fun GraficoBarras(
                     Text(formatarValor(item.valor), color = cor, style = MaterialTheme.typography.bodyMedium)
                 }
                 Spacer(Modifier.height(4.dp))
-                Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(AguiaCores.Borda)) {
+                Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(MaterialTheme.colorScheme.outline)) {
                     Box(
                         Modifier
                             .fillMaxWidth((abs(item.valor) / maximo).toFloat().coerceIn(MENOR_FRACAO, 1f))

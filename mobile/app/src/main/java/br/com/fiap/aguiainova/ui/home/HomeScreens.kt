@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Task
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -120,7 +121,7 @@ fun HomeLiderancaScreen(navController: NavController) {
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             CartaoIndicador("Produtividade", Formatadores.percentualComSinal(painel?.ganhoProdutividadeMedio), AguiaCores.Primaria, Modifier.weight(1f))
-            CartaoIndicador("Projetos", (painel?.totalProjetos ?: 0).toString(), AguiaCores.TextoSecundario, Modifier.weight(1f))
+            CartaoIndicador("Projetos", (painel?.totalProjetos ?: 0).toString(), MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
         }
         TituloSecao("Ações rápidas")
         CartaoAcao("Dashboard executivo", "ROI, lucro, prazos e insights de IA", Icons.Default.BarChart) {
