@@ -104,27 +104,23 @@ provavelmente não precisa de adaptação. Confirmar rodando os testes.
 
 ## RD-007/008/009 — o que fazer
 
-Os specs já foram lidos nesta sessão mas o conteúdo integral não está
-reproduzido aqui (ficaria muito longo). **Releia os arquivos**
-`docs/redesign/specs/007-estrategias-e-historico.md`,
-`docs/redesign/specs/008-dashboard.md` e
-`docs/redesign/specs/009-assistente-e-insights.md` diretamente — cada um tem
-seção "Arquivos", "Como implementar" e "Testes e aceite" objetivas.
+Cada spec restante agora tem um documento próprio, com gaps concretos já
+identificados (arquivo/linha) para não ter que reauditar do zero:
 
-Pontos concretos já identificados que vale ir direto corrigir:
+- `docs/redesign/PENDENTE-RD-007.md` — Estratégias e histórico (4 gaps
+  concretos já mapeados: selos sem `FlowRow`, filtros não empilham, filtro
+  de histórico não vai pra API, diálogo de exclusão sem o título do item).
+- `docs/redesign/PENDENTE-RD-008.md` — Dashboard (bug da barra zero já
+  corrigido no PR #15; auditoria completa do resto do spec ainda falta).
+- `docs/redesign/PENDENTE-RD-009.md` — Assistente e insights (contraste do
+  chat já corrigido no PR #16; auditoria completa do resto do spec ainda
+  falta).
+- `docs/redesign/PENDENTE-RD-010.md` — fechamento final, só depois dos três
+  acima terem PR aberto.
 
-- **RD-008**: em `ui/components/Graficos.kt` (ou onde estiver o gráfico de
-  barras do dashboard), existe lógica de "fração mínima" para cada barra ter
-  uma altura visível mesmo com valor baixo — essa lógica está desenhando
-  barra visível também para valor **zero**, o que é enganoso (parece que há
-  dado quando não há). Corrigir para barra de altura zero (ou omitida) quando
-  o valor é zero.
-- **RD-009**: no chat do assistente de IA, o balão da mensagem do **usuário**
-  usa uma cor de fundo azul claro (provavelmente `AguiaCores.Primaria` ou
-  `primaryContainer`) com texto branco — verificar contraste real contra o
-  tema dark (`#53C7F5` é um azul claro/ciano, texto branco sobre ele pode
-  ficar com contraste insuficiente). Usar `onPrimary`/`onPrimaryContainer`
-  correto do tema, não branco fixo.
+Para continuar, basta pedir: **"Implemente o PENDENTE-RD-007.md"** (ou 008/
+009/010). Cada um já tem o suficiente pra começar direto, sem reler todo o
+histórico desta sessão.
 
 ## RD-010 — fechamento
 
