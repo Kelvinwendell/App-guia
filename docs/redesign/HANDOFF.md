@@ -45,12 +45,14 @@ Gerado em 2026-10-24.
 | RD-002 Componentes base | ✅ Merged | PR #8 |
 | RD-003 Autenticação/Perfil | ✅ Merged | PR #10 |
 | RD-004 Homes por perfil | 🟡 PR aberto | PR #13 — extraiu `HomeConteudo.kt`; **verificar CI** antes de considerar fechado |
-| RD-005 Ideias | 🟡 Em andamento nesta sessão | branch `mobile/rd-005-ideias`; ver detalhe abaixo |
+| RD-005 Ideias | 🟡 PR aberto | PR #14 — ver detalhe abaixo |
 | RD-006 Projetos | ✅ Merged | PR #11 |
 | RD-007 Estratégias e histórico | ⬜ Não iniciado | spec já lido nesta sessão (conteúdo no histórico da conversa, não repetido aqui) |
-| RD-008 Dashboard | ⬜ Não iniciado | **bug conhecido**: `Graficos.kt` tem lógica de fração mínima que desenha barra mesmo para valor zero — corrigir |
-| RD-009 Assistente e insights | ⬜ Não iniciado | **bug conhecido**: balão de chat do usuário pode ficar com texto branco sobre azul claro, ilegível — corrigir contraste |
-| RD-010 Validação final/fechamento | ⬜ Não iniciado | atualizar tabela de status do `README.md`, confirmar CI verde, documentar explicitamente que validação visual real (capturas em device/emulador) não pode ser feita neste sandbox — não fingir que foi feito |
+| RD-008 Dashboard | 🟡 PR aberto (parcial) | PR #15 — **só o bug da barra zero** (`Graficos.kt`/`fracaoDaBarra`); auditoria completa do spec ainda falta |
+| RD-009 Assistente e insights | 🟡 PR aberto (parcial) | PR #16 — **só o contraste do balão do usuário** (`AssistenteIaScreen.kt`, `Balao()`); auditoria completa do spec ainda falta |
+| RD-010 Validação final/fechamento | ⬜ Não iniciado | atualizar tabela de status do `README.md`, confirmar CI verde de todos os PRs (#13–#16), documentar explicitamente que validação visual real (capturas em device/emulador) não pode ser feita neste sandbox — não fingir que foi feito |
+
+**PRs abertos ao fim desta rodada**: #13 (RD-004), #14 (RD-005), #15 (RD-008 parcial), #16 (RD-009 parcial). Nenhum foi mesclado ainda — verificar CI de cada um antes de mesclar.
 
 ## RD-005 — estado exato nesta sessão
 
