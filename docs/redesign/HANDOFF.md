@@ -68,8 +68,6 @@ confirmar se o commit já existe):
     resultado vs. gestor sem nenhuma ideia vs. aba "aprovadas" vazia vs.
     operador sem nenhuma ideia própria (este último com `MensagemVazia(...,
     acaoTexto = "Cadastrar ideia", aoAcao = { navController.navigate(...) })`).
-  - `FlowRow` no lugar de `Row` nas linhas de selo (`CartaoIdeia` e
-    `AvaliacaoDaIa`) para não vazar largura.
   - Botão "Rejeitar" usa `MaterialTheme.colorScheme.error`/`onError`
     explicitamente (antes não garantia contraste).
   - Botão "Aprovar" usa `AguiaCores.Fundo` no lugar de `Color.Black` fixo.
@@ -108,7 +106,7 @@ Cada spec restante agora tem um documento próprio, com gaps concretos já
 identificados (arquivo/linha) para não ter que reauditar do zero:
 
 - `docs/redesign/PENDENTE-RD-007.md` — Estratégias e histórico (4 gaps
-  concretos já mapeados: selos sem `FlowRow`, filtros não empilham, filtro
+  concretos já mapeados: selos que podem vazar a largura, filtros não empilham, filtro
   de histórico não vai pra API, diálogo de exclusão sem o título do item).
 - `docs/redesign/PENDENTE-RD-008.md` — Dashboard (bug da barra zero já
   corrigido no PR #15; auditoria completa do resto do spec ainda falta).

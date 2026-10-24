@@ -18,13 +18,24 @@ Branch a criar: `mobile/rd-007-estrategias` a partir de `main`.
      selo de categoria + selo de campanha (campanha pode ter nome longo).
    - `HistoricoEstrategiasScreen.kt` (linha ~72): `Row` com selo de ação +
      selo de categoria no cartão do histórico.
-   - Trocar por `FlowRow` (`androidx.compose.foundation.layout.FlowRow`),
-     igual ao padrão já usado em RD-005 (`ui/ideias/IdeiasScreen.kt`).
-   - **Atenção**: `FlowRow` é experimental nesta versão do Compose
-     Foundation e o build trata isso como erro de compilação sem opt-in —
-     anotar a função com `@OptIn(ExperimentalLayoutApi::class)` (import
-     `androidx.compose.foundation.layout.ExperimentalLayoutApi`). Isso já
-     quebrou o CI do PR de RD-005 uma vez; não esquecer aqui.
+   - **NÃO usar `FlowRow`** (`androidx.compose.foundation.layout.FlowRow`)
+     para resolver isso. Foi tentado em RD-005: compila com
+     `@OptIn(ExperimentalLayoutApi::class)`, mas falha em runtime nos testes
+     (`CartaoIdeiaTest`) com `java.lang.NoSuchMethodError` em toda
+     renderização que passa por ele — incompatibilidade de resolução de
+     dependência entre o classpath de compilação e o de teste (Robolectric)
+     nesta versão do BOM do Compose (`composeBom = "2024.09.00"`,
+     `mobile/gradle/libs.versions.toml`). Foi revertido para `Row` simples
+     no PR #14. Se quiser investigar e resolver de vez (ex.: forçar uma
+     versão explícita de `androidx.compose.foundation` nas dependências do
+     `mobile/app/build.gradle.kts`, já que hoje ela só vem transitiva via
+     `material3`), é um projeto separado — não bloquear RD-007 nisso.
+   - Alternativa mais simples e seguramente compatível: aceitar que selos
+     continuam em `Row` (overflow horizontal) mas garantir que o texto dos
+     selos não seja absurdamente longo, ou envolver o `Row` num
+     `horizontalScroll(rememberScrollState())` como paliativo — qualquer
+     uma dessas é melhor que reintroduzir `FlowRow` sem resolver a causa
+     raiz do `NoSuchMethodError`.
 
 2. **Filtros categoria/campanha não empilham em tela estreita** —
    `HistoricoEstrategiasScreen.kt` linha ~57: os dois `Seletor` estão num

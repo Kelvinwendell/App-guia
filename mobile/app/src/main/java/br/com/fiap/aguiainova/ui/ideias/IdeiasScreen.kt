@@ -2,8 +2,6 @@ package br.com.fiap.aguiainova.ui.ideias
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -188,7 +186,6 @@ private fun FiltrosDoGestor(
 }
 
 /** Nao e private: SPEC-RD-005 testa esse cartao isoladamente (CartaoIdeiaTest). */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CartaoIdeia(
     ideia: Ideia,
@@ -204,7 +201,7 @@ fun CartaoIdeia(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(ideia.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(ideia.descricao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo(ideia.status.rotulo, ideia.status.cor())
                 Selo("Prioridade ${ideia.prioridade.rotulo.lowercase()}", ideia.prioridade.cor())
             }
@@ -255,7 +252,6 @@ fun CartaoIdeia(
 
 /** Nota sugerida pela IA (ou pelas regras): e so uma orientacao para o gestor decidir. Superficie secundaria
  * (surfaceContainerHigh, mais clara que o cartao que a contem) para nao competir com o cartao da ideia. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
     Card(
@@ -264,7 +260,7 @@ private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo("Nota ${avaliacao.score}/100", AguiaCores.Primaria)
                 Selo("Sugere: ${avaliacao.prioridadeSugerida.rotulo}", avaliacao.prioridadeSugerida.cor())
                 Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", MaterialTheme.colorScheme.onSurfaceVariant)
