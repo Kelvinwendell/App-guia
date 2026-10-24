@@ -45,6 +45,8 @@ Definidas no painel do Render (nunca no código, nunca versionadas):
 | `APP_SEED_ENABLED` | `false` (ou omitida — esse já é o default da aplicação) |
 | `APP_ALLOW_ROLE_SELECTION` | `false` em produção |
 | `AI_ENABLED`, `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` | conforme o provedor de IA escolhido (ver README) |
+| `APP_SEED_DEMO` | `desligado` (padrão, ou omitida); `carregar` e `remover` só durante uma apresentação (ver abaixo) |
+| `APP_SEED_DEMO_SENHA` | só enquanto `APP_SEED_DEMO` estiver ligada: a senha das contas de demonstração |
 
 ## Ligando a IA em produção (passo a passo)
 
@@ -65,6 +67,39 @@ locais (marcadas "Regras") e o chat e o rascunho de estratégia respondem 503. A
 
 Nunca coloque a chave no repositório, em issue/PR ou em conversa: só no painel do Render (e, para testes locais, num
 `.env` que o `.gitignore` já ignora).
+
+## Dados de demonstração (para apresentar o app)
+
+Cria, **no banco atual**, uma indústria fictícia: 5 contas, 6 estratégias, 12 ideias (aprovadas, rejeitadas e em
+análise) e 5 projetos com resultados mês a mês. O que já existe no banco não é alterado nem apagado. As estratégias
+vigentes aparecem com as três saúdes: 2 em dia, 2 em risco e 1 sem tração.
+
+| Perfil | Nome | E-mail |
+|---|---|---|
+| Liderança | Helena Duarte | `helena.duarte@aguiainova.demo` |
+| Gestor | Marcos Oliveira | `marcos.oliveira@aguiainova.demo` |
+| Operador | Juliana Costa | `juliana.costa@aguiainova.demo` |
+| Operador | Rafael Lima | `rafael.lima@aguiainova.demo` |
+| Operador | Tatiane Alves | `tatiane.alves@aguiainova.demo` |
+
+A senha das cinco contas é a que **você** definir em `APP_SEED_DEMO_SENHA`; ela não existe no repositório.
+
+1. Render → `app-guia` → **Environment** → definir `APP_SEED_DEMO=carregar` e `APP_SEED_DEMO_SENHA=<uma senha com 6+
+   caracteres>` → salvar (o serviço reinicia).
+2. Nos logs deve aparecer "Dados de demonstração carregados: 5 contas, 6 estratégias, 12 ideias e 5 projetos."
+   (com senha curta ou vazia aparece um erro e nada é criado).
+3. No app, entrar com `helena.duarte@aguiainova.demo` (Liderança) ou `marcos.oliveira@aguiainova.demo` (Gestor).
+4. Depois da apresentação, mude `APP_SEED_DEMO` para `desligado` e apague `APP_SEED_DEMO_SENHA`. Para tirar os dados
+   de mentira do banco, deixe `APP_SEED_DEMO=remover` por uma subida e depois volte para `desligado`.
+
+Detalhes que ajudam na hora de apresentar:
+
+- Reiniciar com `carregar` ligado não duplica nada (a carga confere se a conta da Helena já existe). Para recarregar do
+  zero: `remover`, depois `carregar`.
+- As datas são relativas ao dia em que a carga rodou. Carregue perto da apresentação: com o tempo, prazos vencem e a
+  saúde das estratégias muda.
+- As ideias em análise chegam sem nota de IA, de propósito: o Gestor pode tocar em **Priorizar com IA** (tela de Ideias) e mostrar a IA trabalhando ao vivo.
+- `remover` apaga só as contas de demonstração e o que elas criaram (estratégias, ideias, projetos e histórico).
 
 ## Problemas reais já encontrados e resolvidos (para quem repetir esse processo)
 

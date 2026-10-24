@@ -24,7 +24,36 @@ public record AppProperties(
     public record Security(boolean allowRoleSelection) {
     }
 
-    public record Seed(boolean enabled) {
+    public record Seed(boolean enabled, @Valid @NotNull Demo demo) {
+
+        /**
+         * Dados de demonstracao para apresentacoes: {@code modo} carrega ("carregar" ou "true") ou remove ("remover")
+         * um conjunto fixo de contas, estrategias, ideias e projetos ficticios; qualquer outro valor deixa tudo
+         * desligado. A senha das contas de demonstracao nunca fica no repositorio: vem do ambiente.
+         */
+        public record Demo(String modo, String senha) {
+
+            public boolean carregar() {
+                return modoEm("carregar", "true", "sim", "1");
+            }
+
+            public boolean remover() {
+                return modoEm("remover", "limpar");
+            }
+
+            private boolean modoEm(String... aceitos) {
+                if (modo == null) {
+                    return false;
+                }
+                String normalizado = modo.strip();
+                for (String aceito : aceitos) {
+                    if (aceito.equalsIgnoreCase(normalizado)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
     }
 
     public record Ai(
