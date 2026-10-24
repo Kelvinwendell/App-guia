@@ -22,8 +22,10 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
-
+      # Os runners ubuntu-latest ja vem com Android SDK pre-instalado (ANDROID_HOME configurado,
+      # licencas aceitas). android-actions/setup-android@v3 tentava instalar o pacote legado "tools",
+      # removido do repositorio da Google ha anos - falhava sempre. O proprio Gradle/AGP baixa a
+      # platform/build-tools que faltar usando o SDK ja presente na imagem.
       - name: Testes unitarios do mobile
         working-directory: mobile
         run: ./gradlew testDebugUnitTest --console=plain
