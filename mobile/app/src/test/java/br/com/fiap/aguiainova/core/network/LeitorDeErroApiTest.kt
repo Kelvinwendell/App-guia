@@ -59,13 +59,20 @@ class LeitorDeErroApiTest {
     }
 
     @Test
-    fun falhaDeRedeViraMensagemDeConexao() {
-        listOf(IOException("sem rede"), SocketTimeoutException("tempo esgotado")).forEach {
-            val falha = leitor.traduzir(it)
+    fun faltaDeConexaoViraMensagemDeConexao() {
+        val falha = leitor.traduzir(IOException("sem rede"))
 
-            assertEquals(TipoErro.REDE, falha.tipo)
-            assertTrue(falha.mensagem.startsWith("Sem conexão"))
-        }
+        assertEquals(TipoErro.REDE, falha.tipo)
+        assertTrue(falha.mensagem.startsWith("Sem conexão"))
+    }
+
+    /** v2.1: timeout tem mensagem propria (hospedagem gratuita hiberna e demora a acordar), distinta de "sem rede". */
+    @Test
+    fun timeoutViraMensagemDeServidorAcordando() {
+        val falha = leitor.traduzir(SocketTimeoutException("tempo esgotado"))
+
+        assertEquals(TipoErro.REDE, falha.tipo)
+        assertTrue(falha.mensagem.contains("acordando"))
     }
 
     @Test

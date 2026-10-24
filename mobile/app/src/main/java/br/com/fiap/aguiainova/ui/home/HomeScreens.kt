@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Task
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Task
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,10 +74,10 @@ fun HomeOperadorScreen(navController: NavController) {
             CartaoIndicador("Aprovadas", resumo.ideiasAprovadas.toString(), AguiaCores.Sucesso, Modifier.weight(1f))
         }
         TituloSecao("Ações rápidas")
-        CartaoAcao("Minhas ideias", "Cadastre e acompanhe o status", Icons.Default.Lightbulb) {
+        CartaoAcao("Minhas ideias", "Cadastre e acompanhe o status", Icons.Outlined.Lightbulb, destaque = true) {
             navController.navigate(Rotas.IDEIAS)
         }
-        CartaoAcao("Estratégia da empresa", "Veja o que a empresa quer alcançar e alinhe suas ideias", Icons.Default.Flag) {
+        CartaoAcao("Estratégia da empresa", "Veja o que a empresa quer alcançar e alinhe suas ideias", Icons.Outlined.Flag) {
             navController.navigate(Rotas.ESTRATEGIAS)
         }
     }
@@ -92,19 +92,19 @@ fun HomeGestorScreen(navController: NavController) {
         }
         CartaoIndicador("Retorno parcial", Formatadores.moeda(resumo.retornoParcial), AguiaCores.Alerta)
         TituloSecao("Ações rápidas")
-        CartaoAcao("Aprovar ideias", "Analise, priorize e aprove ideias enviadas", Icons.Default.Lightbulb) {
+        CartaoAcao("Aprovar ideias", "Analise, priorize e aprove ideias enviadas", Icons.Outlined.Lightbulb, destaque = true) {
             navController.navigate(Rotas.IDEIAS)
         }
-        CartaoAcao("Assistente de IA", "Converse para escolher ideias e montar projetos", Icons.Default.AutoAwesome) {
+        CartaoAcao("Assistente de IA", "Converse para escolher ideias e montar projetos", Icons.Outlined.AutoAwesome) {
             navController.navigate(Rotas.estrategias(Rotas.ABA_ASSISTENTE))
         }
-        CartaoAcao("Criar projeto", "Cadastre novas iniciativas", Icons.Default.Work) {
+        CartaoAcao("Criar projeto", "Cadastre novas iniciativas", Icons.Outlined.Work) {
             navController.navigate(Rotas.PROJETO_NOVO)
         }
-        CartaoAcao("Atualizar progresso", "Acompanhe indicadores e entregas", Icons.Default.Task) {
+        CartaoAcao("Atualizar progresso", "Acompanhe indicadores e entregas", Icons.Outlined.Task) {
             navController.navigate(Rotas.PROJETOS)
         }
-        CartaoAcao("Saúde das estratégias", "Veja quais estão em dia, em risco ou paradas", Icons.Default.Flag) {
+        CartaoAcao("Saúde das estratégias", "Veja quais estão em dia, em risco ou paradas", Icons.Outlined.Flag) {
             navController.navigate(Rotas.ESTRATEGIAS)
         }
     }
@@ -123,13 +123,13 @@ fun HomeLiderancaScreen(navController: NavController) {
             CartaoIndicador("Projetos", (painel?.totalProjetos ?: 0).toString(), MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
         }
         TituloSecao("Ações rápidas")
-        CartaoAcao("Painel executivo", "ROI, lucro, prazos e insights de IA", Icons.Default.BarChart) {
+        CartaoAcao("Painel executivo", "ROI, lucro, prazos e insights de IA", Icons.Outlined.BarChart, destaque = true) {
             navController.navigate(Rotas.DASHBOARD)
         }
-        CartaoAcao("Estratégia", "Crie com a IA, acompanhe a saúde e revise as diretrizes", Icons.Default.Flag) {
+        CartaoAcao("Estratégia", "Crie com a IA, acompanhe a saúde e revise as diretrizes", Icons.Outlined.Flag) {
             navController.navigate(Rotas.ESTRATEGIAS)
         }
-        CartaoAcao("Projetos estratégicos", "Acompanhe etapa, status, investimento e retorno", Icons.Default.Work) {
+        CartaoAcao("Projetos estratégicos", "Acompanhe etapa, status, investimento e retorno", Icons.Outlined.Work) {
             navController.navigate(Rotas.PROJETOS)
         }
     }

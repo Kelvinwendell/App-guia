@@ -21,7 +21,11 @@ interface ArmazenamentoSessao {
  */
 class ArmazenamentoSessaoPrefs(context: Context) : ArmazenamentoSessao {
 
-    private val preferencias = run {
+    // "by lazy": construir o keystore/EncryptedSharedPreferences so no primeiro acesso de verdade, nao no
+    // construtor. AppContainer e criado em Application.onCreate() para todo teste Robolectric (mesmo os que
+    // nunca leem sessao) - e o Robolectric nao tem AndroidKeyStore real, entao construir isso de olho fechado
+    // quebraria a suite inteira so por existir.
+    private val preferencias by lazy {
         val chaveMestra = MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
         EncryptedSharedPreferences.create(
             context,
