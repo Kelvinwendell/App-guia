@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.FloatingActionButton
@@ -30,6 +31,7 @@ import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.LinhaInfo
 import br.com.fiap.aguiainova.ui.components.MensagemVazia
+import br.com.fiap.aguiainova.ui.components.MostrarNovoNoTopo
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.TelaBase
 import br.com.fiap.aguiainova.ui.theme.AguiaCores
@@ -63,7 +65,13 @@ fun ProjetosScreen(perfil: Perfil, navController: NavController) {
             if (lista.isEmpty()) {
                 MensagemVazia("Nenhum projeto cadastrado.")
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 80.dp)) {
+                val posicao = rememberLazyListState()
+                MostrarNovoNoTopo(posicao, lista.first().id)
+                LazyColumn(
+                    state = posicao,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
                     items(lista, key = { it.id }) { projeto ->
                         CartaoProjeto(projeto) { navController.navigate(Rotas.projetoDetalhe(projeto.id)) }
                     }
