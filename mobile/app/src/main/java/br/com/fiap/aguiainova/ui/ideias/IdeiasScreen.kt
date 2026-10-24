@@ -2,6 +2,7 @@ package br.com.fiap.aguiainova.ui.ideias
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,8 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -34,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -105,7 +107,17 @@ fun IdeiasScreen(perfil: Perfil, navController: NavController) {
             ConteudoDoEstado(estado, aoTentarNovamente = vm::carregar, modifier = Modifier.weight(1f)) { lista ->
                 val exibidas = if (ordenarPorIa) lista.sortedByDescending { it.avaliacaoIa?.score ?: -1 } else lista
                 if (exibidas.isEmpty()) {
-                    MensagemVazia("Nenhuma ideia por aqui ainda.")
+                    val filtrado = gestor && filtro != null
+                    when {
+                        filtrado -> MensagemVazia("Nenhuma ideia encontrada com esse filtro.")
+                        gestor -> MensagemVazia("Nenhuma ideia enviada ainda.")
+                        aprovadas -> MensagemVazia("Nenhuma ideia aprovada pela empresa ainda.")
+                        else -> MensagemVazia(
+                            "Você ainda não cadastrou nenhuma ideia.",
+                            acaoTexto = "Cadastrar ideia",
+                            aoAcao = { navController.navigate(Rotas.ideiaForm()) }
+                        )
+                    }
                 } else {
                     // A lista fica "ancorada" no item que estava visivel; ao reordenar pela nota da IA voltamos ao topo
                     // para o gestor ver os primeiros colocados, e nao o meio do ranking.
@@ -174,8 +186,9 @@ private fun FiltrosDoGestor(
     }
 }
 
+/** Nao e private: SPEC-RD-005 testa esse cartao isoladamente (CartaoIdeiaTest). */
 @Composable
-private fun CartaoIdeia(
+fun CartaoIdeia(
     ideia: Ideia,
     perfil: Perfil,
     mostrarAcoesDoAutor: Boolean,
@@ -189,7 +202,7 @@ private fun CartaoIdeia(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(ideia.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(ideia.descricao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo(ideia.status.rotulo, ideia.status.cor())
                 Selo("Prioridade ${ideia.prioridade.rotulo.lowercase()}", ideia.prioridade.cor())
             }
@@ -211,13 +224,18 @@ private fun CartaoIdeia(
                         onClick = { aoDecidir(StatusIdeia.APROVADA) },
                         enabled = !ocupado,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = AguiaCores.Sucesso, contentColor = Color.Black)
+                        colors = ButtonDefaults.buttonColors(containerColor = AguiaCores.Sucesso, contentColor = AguiaCores.Fundo)
                     ) { Text("Aprovar") }
                     Button(
                         onClick = { aoDecidir(StatusIdeia.REJEITADA) },
                         enabled = !ocupado,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = AguiaCores.Erro)
+                        // par error/onError explicito: o rosa claro de RD-001 nao garante contraste com texto
+                        // escolhido "no olho" - usa o par que o tema ja define para isso.
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
                     ) { Text("Rejeitar") }
                 }
                 OutlinedButton(onClick = aoPontuar, enabled = !ocupado, modifier = Modifier.fillMaxWidth()) {
@@ -233,12 +251,17 @@ private fun CartaoIdeia(
     }
 }
 
-/** Nota sugerida pela IA (ou pelas regras): e so uma orientacao para o gestor decidir. */
+/** Nota sugerida pela IA (ou pelas regras): e so uma orientacao para o gestor decidir. Superficie secundaria
+ * (surfaceContainerHigh, mais clara que o cartao que a contem) para nao competir com o cartao da ideia. */
 @Composable
 private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
-    CartaoAguia(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+    ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo("Nota ${avaliacao.score}/100", AguiaCores.Primaria)
                 Selo("Sugere: ${avaliacao.prioridadeSugerida.rotulo}", avaliacao.prioridadeSugerida.cor())
                 Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", MaterialTheme.colorScheme.onSurfaceVariant)

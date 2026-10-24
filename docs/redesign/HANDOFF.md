@@ -1,0 +1,141 @@
+# Handoff — Redesign Águia Inova (continuação em outra sessão)
+
+Este arquivo existe para que, se esta sessão do Claude Code acabar (créditos,
+timeout, etc.), outra sessão possa continuar o trabalho sem perder contexto.
+Gerado em 2026-10-24.
+
+## Como continuar
+
+1. Leia `docs/redesign/README.md`, `PRD.md`, `ARQUITETURA.md` e os specs em
+   `docs/redesign/specs/0XX-*.md` — são a fonte de verdade.
+2. Veja a seção "Status por spec" abaixo para saber o que já foi feito, o que
+   está em PR aberto e o que falta.
+3. Decisão importante já tomada (não reabrir): **tema é dark-only** (PRD,
+   "Não objetivos"). Não criar tema claro.
+4. O PR #9 (de outra sessão paralela, mesclado direto na `main` pelo usuário)
+   reestruturou abas de `ui/home`, `ui/ideias`, `ui/estrategias`,
+   `ui/dashboard`, `ui/ia`, e adicionou `historico()`/`saude()`/`saudeDe()` ao
+   `EstrategiaRepository` e campos `metas`/`inicio`/`fim` a `Estrategia`. Todo
+   trabalho desta lista é construído **em cima** dessa reestruturação (auditar
+   contra o spec + corrigir gaps), não substituí-la.
+5. Padrão de PR usado em todos os specs: branch `mobile/rd-XXX-nome` a partir
+   de `main`, commits em português explicando o motivo (não só o "o quê"),
+   PR squash-merge, corpo do PR com rodapé `🤖 Generated with Claude Code` +
+   link da sessão. Nunca force-push em `main`.
+6. Padrão de teste: `FakeXRepository` implementando a interface com campos
+   `Resultado<T>` configuráveis por teste + helper `naoUsado<T>()` para
+   métodos não usados no teste. `MainDispatcherRule` para VMs. Para Compose UI
+   tests: `createComposeRule()` + `RobolectricTestRunner` + `@Config(sdk =
+   [34])`; usar `onNodeWithText`/`onAllNodesWithText` (import necessário) —
+   `onNode`/`onAllNodes` são membros da rule, **não** importar.
+7. CI mobile: `.github/workflows/mobile-ci.yml` roda
+   `testDebugUnitTest`/`lintDebug`/`assembleDebug`. **Não** readicionar
+   `android-actions/setup-android@v3` — falha sempre (pacote `tools`
+   deprecado); `ubuntu-latest` já tem SDK.
+8. Bug crítico já corrigido (não reintroduzir): `AguiaInovaApp.onCreate()` não
+   pode construir `AppContainer` (ou qualquer coisa que toque
+   `EncryptedSharedPreferences`/`AndroidKeyStore`) **eager** — Robolectric não
+   tem Keystore real e quebra toda a suíte de testes. Tem que ser `by lazy`.
+
+## Status por spec
+
+| Spec | Status | Observação |
+|---|---|---|
+| RD-001 Tema dark-only | ✅ Merged | PR #7 |
+| RD-002 Componentes base | ✅ Merged | PR #8 |
+| RD-003 Autenticação/Perfil | ✅ Merged | PR #10 |
+| RD-004 Homes por perfil | 🟡 PR aberto | PR #13 — extraiu `HomeConteudo.kt`; **verificar CI** antes de considerar fechado |
+| RD-005 Ideias | 🟡 Em andamento nesta sessão | branch `mobile/rd-005-ideias`; ver detalhe abaixo |
+| RD-006 Projetos | ✅ Merged | PR #11 |
+| RD-007 Estratégias e histórico | ⬜ Não iniciado | spec já lido nesta sessão (conteúdo no histórico da conversa, não repetido aqui) |
+| RD-008 Dashboard | ⬜ Não iniciado | **bug conhecido**: `Graficos.kt` tem lógica de fração mínima que desenha barra mesmo para valor zero — corrigir |
+| RD-009 Assistente e insights | ⬜ Não iniciado | **bug conhecido**: balão de chat do usuário pode ficar com texto branco sobre azul claro, ilegível — corrigir contraste |
+| RD-010 Validação final/fechamento | ⬜ Não iniciado | atualizar tabela de status do `README.md`, confirmar CI verde, documentar explicitamente que validação visual real (capturas em device/emulador) não pode ser feita neste sandbox — não fingir que foi feito |
+
+## RD-005 — estado exato nesta sessão
+
+Branch `mobile/rd-005-ideias` (a partir de `main`, após RD-004 ter sido aberto
+como PR).
+
+Arquivos alterados (ainda não commitados ao chegar nesta mensagem, mas serão
+commitados nesta mesma rodada da sessão — ver `git log` do branch para
+confirmar se o commit já existe):
+
+- `ui/ideias/IdeiasScreen.kt`:
+  - Estado vazio agora é um `when` que distingue: filtro do gestor sem
+    resultado vs. gestor sem nenhuma ideia vs. aba "aprovadas" vazia vs.
+    operador sem nenhuma ideia própria (este último com `MensagemVazia(...,
+    acaoTexto = "Cadastrar ideia", aoAcao = { navController.navigate(...) })`).
+  - `FlowRow` no lugar de `Row` nas linhas de selo (`CartaoIdeia` e
+    `AvaliacaoDaIa`) para não vazar largura.
+  - Botão "Rejeitar" usa `MaterialTheme.colorScheme.error`/`onError`
+    explicitamente (antes não garantia contraste).
+  - Botão "Aprovar" usa `AguiaCores.Fundo` no lugar de `Color.Black` fixo.
+  - `AvaliacaoDaIa` passou a usar `Card` com
+    `colorScheme.surfaceContainerHigh` (superfície secundária) no lugar do
+    mesmo `CartaoAguia` do cartão pai — evita cartão aninhado do mesmo tom.
+  - `CartaoIdeia` deixou de ser `private` para poder ser testado isolado.
+- `ui/ideias/IdeiaFormScreen.kt`: adicionado `tentouSalvar` (state local) e
+  `erro =` em cada `CampoTexto` (título/descrição/categoria) — mostra erro
+  inline só depois da primeira tentativa de salvar, sem perder o texto
+  digitado e sem disparar `vm.salvar` por recomposição. Atende ao requisito
+  do spec "usa erros dos campos quando aplicável".
+- `ui/ideias/CartaoIdeiaTest.kt` (novo): 5 testes cobrindo visibilidade de
+  ações por perfil/dono e callback de decisão.
+
+**Decisão de escopo tomada**: `IdeiaFormConteudoTest.kt` (pedido pelo spec,
+"criar ... no mesmo pacote de teste") **não foi criado** nesta sessão por
+restrição de tempo/créditos — mesmo corte de escopo já usado em RD-003
+(`AutenticacaoConteudoTest` pulado) e RD-006 (`ProjetosConteudoTest` pulado).
+Se for retomado: extrair o conteúdo de `IdeiaFormScreen.kt` (o bloco dentro de
+`ConteudoDoEstado { formulario -> ... }`) para uma função pura
+`IdeiaFormConteudo(formulario, ocupado, aoSalvar)` como foi feito em
+`HomeConteudo.kt` (RD-004) e `PerfilConteudo` (RD-003), e então testar essa
+função isolada (sem NavController/ViewModel).
+
+**Não verificado**: `IdeiasViewModelTest.kt` existente — spec pede "adaptar"
+mas a lógica de `IdeiasViewModel.kt` não foi alterada nesta sessão, então
+provavelmente não precisa de adaptação. Confirmar rodando os testes.
+
+**Próximo passo imediato**: commitar os 3 arquivos acima, dar push no branch
+`mobile/rd-005-ideias`, abrir PR (mesmo padrão dos outros).
+
+## RD-007/008/009 — o que fazer
+
+Os specs já foram lidos nesta sessão mas o conteúdo integral não está
+reproduzido aqui (ficaria muito longo). **Releia os arquivos**
+`docs/redesign/specs/007-estrategias-e-historico.md`,
+`docs/redesign/specs/008-dashboard.md` e
+`docs/redesign/specs/009-assistente-e-insights.md` diretamente — cada um tem
+seção "Arquivos", "Como implementar" e "Testes e aceite" objetivas.
+
+Pontos concretos já identificados que vale ir direto corrigir:
+
+- **RD-008**: em `ui/components/Graficos.kt` (ou onde estiver o gráfico de
+  barras do dashboard), existe lógica de "fração mínima" para cada barra ter
+  uma altura visível mesmo com valor baixo — essa lógica está desenhando
+  barra visível também para valor **zero**, o que é enganoso (parece que há
+  dado quando não há). Corrigir para barra de altura zero (ou omitida) quando
+  o valor é zero.
+- **RD-009**: no chat do assistente de IA, o balão da mensagem do **usuário**
+  usa uma cor de fundo azul claro (provavelmente `AguiaCores.Primaria` ou
+  `primaryContainer`) com texto branco — verificar contraste real contra o
+  tema dark (`#53C7F5` é um azul claro/ciano, texto branco sobre ele pode
+  ficar com contraste insuficiente). Usar `onPrimary`/`onPrimaryContainer`
+  correto do tema, não branco fixo.
+
+## RD-010 — fechamento
+
+Quando os specs 004–009 estiverem todos com PR aberto (ou mesclado):
+
+1. Atualizar a tabela de status em `docs/redesign/README.md` para refletir a
+   realidade (specs concluídos, PRs abertos, o que ficou de fora).
+2. Confirmar que o CI mobile está verde em todos os PRs abertos.
+3. **Não fingir validação visual** — este sandbox não tem emulador/device
+   Android real. Documentar explicitamente no README que a validação visual
+   (capturas de tela, teste manual em 360dp, fonte 150%, etc.) exigida pelos
+   specs **não foi feita** e precisa ser feita por alguém com acesso a um
+   device/emulador antes do release final.
+4. Remover este `HANDOFF.md` (ou arquivá-lo) quando todo o trabalho estiver
+   mesclado e o README já refletir o estado real — ele é só uma muleta de
+   continuidade entre sessões.
