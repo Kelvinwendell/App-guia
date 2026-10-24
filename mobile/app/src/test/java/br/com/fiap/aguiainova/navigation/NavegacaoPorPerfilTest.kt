@@ -17,7 +17,8 @@ import org.robolectric.annotation.Config
 
 /**
  * SPEC-RD-002: as abas da barra inferior correspondem exatamente ao perfil - nenhuma aba de gestao
- * aparece para quem nao tem a permissao (ex.: Operador nao ve Projetos nem Dashboard).
+ * aparece para quem nao tem a permissao (ex.: Operador nao ve Projetos nem Painel). A tela de estrategias aparece
+ * como "Estrategia" (operador e lideranca) ou "Direcao" (gestor).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -36,38 +37,41 @@ class NavegacaoPorPerfilTest {
     }
 
     @Test
-    fun operadorVeHomeIdeiasEstrategiasPerfilENadaMais() {
+    fun operadorVeInicioIdeiasEstrategiaPerfilENadaMais() {
         renderizarBarra(Perfil.OPERADOR)
 
-        compose.onNodeWithText("Home").assertIsDisplayed()
+        compose.onNodeWithText("Início").assertIsDisplayed()
         compose.onNodeWithText("Ideias").assertIsDisplayed()
-        compose.onNodeWithText("Estratégias").assertIsDisplayed()
+        compose.onNodeWithText("Estratégia").assertIsDisplayed()
         compose.onNodeWithText("Perfil").assertIsDisplayed()
         compose.onAllNodesWithText("Projetos").assertCountEquals(0)
-        compose.onAllNodesWithText("Dashboard").assertCountEquals(0)
+        compose.onAllNodesWithText("Painel").assertCountEquals(0)
+        compose.onAllNodesWithText("Direção").assertCountEquals(0)
     }
 
     @Test
-    fun gestorVeHomeIdeiasProjetosEstrategiasPerfilENaoVeDashboard() {
+    fun gestorVeInicioIdeiasProjetosDirecaoPerfilENaoVePainel() {
         renderizarBarra(Perfil.GESTOR)
 
-        compose.onNodeWithText("Home").assertIsDisplayed()
+        compose.onNodeWithText("Início").assertIsDisplayed()
         compose.onNodeWithText("Ideias").assertIsDisplayed()
         compose.onNodeWithText("Projetos").assertIsDisplayed()
-        compose.onNodeWithText("Estratégias").assertIsDisplayed()
+        compose.onNodeWithText("Direção").assertIsDisplayed()
         compose.onNodeWithText("Perfil").assertIsDisplayed()
-        compose.onAllNodesWithText("Dashboard").assertCountEquals(0)
+        compose.onAllNodesWithText("Painel").assertCountEquals(0)
+        compose.onAllNodesWithText("Estratégia").assertCountEquals(0)
     }
 
     @Test
-    fun liderancaVeHomeDashboardProjetosEstrategiasPerfilENaoVeIdeias() {
+    fun liderancaVeInicioEstrategiaPainelProjetosPerfilENaoVeIdeias() {
         renderizarBarra(Perfil.LIDERANCA)
 
-        compose.onNodeWithText("Home").assertIsDisplayed()
-        compose.onNodeWithText("Dashboard").assertIsDisplayed()
+        compose.onNodeWithText("Início").assertIsDisplayed()
+        compose.onNodeWithText("Estratégia").assertIsDisplayed()
+        compose.onNodeWithText("Painel").assertIsDisplayed()
         compose.onNodeWithText("Projetos").assertIsDisplayed()
-        compose.onNodeWithText("Estratégias").assertIsDisplayed()
         compose.onNodeWithText("Perfil").assertIsDisplayed()
         compose.onAllNodesWithText("Ideias").assertCountEquals(0)
+        compose.onAllNodesWithText("Direção").assertCountEquals(0)
     }
 }

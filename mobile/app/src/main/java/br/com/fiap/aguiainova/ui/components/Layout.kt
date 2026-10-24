@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.automirrored.outlined.ShowChart
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -168,24 +168,29 @@ fun MensagemVazia(
 
 private data class ItemBarra(val rota: String, val rotulo: String, val icone: ImageVector)
 
-/** Abas de cada perfil: a barra e a mesma; o que muda e a lista de itens (dados, nao codigo duplicado). */
+/**
+ * Abas de cada perfil: a barra e a mesma; o que muda e a lista de itens (dados, nao codigo duplicado). A mesma tela de
+ * estrategias aparece como "Estratégia" (operador e lideranca) ou "Direção" (gestor, que ali tambem tem o assistente).
+ */
 private fun itensDe(perfil: Perfil): List<ItemBarra> {
-    val home = ItemBarra(Rotas.homeDe(perfil), "Home", Icons.Outlined.Home)
+    val inicio = ItemBarra(Rotas.homeDe(perfil), "Início", Icons.Outlined.Home)
     val ideias = ItemBarra(Rotas.IDEIAS, "Ideias", Icons.Outlined.Lightbulb)
-    val estrategias = ItemBarra(Rotas.ESTRATEGIAS, "Estratégias", Icons.AutoMirrored.Outlined.ShowChart)
+    val estrategia = ItemBarra(Rotas.ESTRATEGIAS, "Estratégia", Icons.Outlined.Flag)
+    val direcao = ItemBarra(Rotas.ESTRATEGIAS, "Direção", Icons.Outlined.Explore)
     val projetos = ItemBarra(Rotas.PROJETOS, "Projetos", Icons.Outlined.Work)
-    val dashboard = ItemBarra(Rotas.DASHBOARD, "Dashboard", Icons.Outlined.BarChart)
+    val painel = ItemBarra(Rotas.DASHBOARD, "Painel", Icons.Outlined.BarChart)
     val perfilAba = ItemBarra(Rotas.PERFIL, "Perfil", Icons.Outlined.Person)
     return when (perfil) {
-        Perfil.OPERADOR -> listOf(home, ideias, estrategias, perfilAba)
-        Perfil.GESTOR -> listOf(home, ideias, projetos, estrategias, perfilAba)
-        Perfil.LIDERANCA -> listOf(home, dashboard, projetos, estrategias, perfilAba)
+        Perfil.OPERADOR -> listOf(inicio, ideias, estrategia, perfilAba)
+        Perfil.GESTOR -> listOf(inicio, ideias, projetos, direcao, perfilAba)
+        Perfil.LIDERANCA -> listOf(inicio, estrategia, painel, projetos, perfilAba)
     }
 }
 
 @Composable
 fun BarraInferior(perfil: Perfil, navController: NavController) {
-    val rotaAtual = navController.currentBackStackEntryAsState().value?.destination?.route
+    // A rota da tela de estrategias carrega um argumento opcional ("estrategias?aba=..."): compara so o caminho.
+    val rotaAtual = navController.currentBackStackEntryAsState().value?.destination?.route?.substringBefore('?')
     NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
         itensDe(perfil).forEach { item ->
             NavigationBarItem(

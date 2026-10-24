@@ -14,24 +14,33 @@ object Rotas {
 
     const val IDEIAS = "ideias"
     const val ESTRATEGIAS = "estrategias"
-    const val HISTORICO_ESTRATEGIAS = "estrategias/historico"
     const val PROJETOS = "projetos"
     const val DASHBOARD = "dashboard"
-    const val ASSISTENTE_IA = "assistente_ia"
     const val PERFIL = "perfil"
 
     const val ARGUMENTO_ID = "id"
+    const val ARGUMENTO_ABA = "aba"
+
+    /** Aba do assistente de IA na tela de estrategias (so existe para o gestor). */
+    const val ABA_ASSISTENTE = "assistente"
 
     // Padroes (usados no NavGraph) e construtores (usados para navegar)
+    const val PADRAO_ESTRATEGIAS = "estrategias?$ARGUMENTO_ABA={$ARGUMENTO_ABA}"
     const val PADRAO_IDEIA_FORM = "ideias/form?$ARGUMENTO_ID={$ARGUMENTO_ID}"
     const val PADRAO_ESTRATEGIA_FORM = "estrategias/form?$ARGUMENTO_ID={$ARGUMENTO_ID}"
+    const val PADRAO_ESTRATEGIA_DETALHE = "estrategia/{$ARGUMENTO_ID}"
     const val PROJETO_NOVO = "projetos/novo"
     const val PADRAO_PROJETO_DETALHE = "projetos/{$ARGUMENTO_ID}"
+
+    /** Sem [aba] abre a tela de estrategias na aba padrao (as vigentes); com [aba], direto nela. */
+    fun estrategias(aba: String? = null) = ESTRATEGIAS + if (aba == null) "" else "?$ARGUMENTO_ABA=$aba"
 
     /** Sem [id] abre o formulario de criacao; com [id], o de edicao. */
     fun ideiaForm(id: String? = null) = "ideias/form" + parametroOpcional(id)
 
     fun estrategiaForm(id: String? = null) = "estrategias/form" + parametroOpcional(id)
+
+    fun estrategiaDetalhe(id: String) = "estrategia/$id"
 
     fun projetoDetalhe(id: String) = "projetos/$id"
 

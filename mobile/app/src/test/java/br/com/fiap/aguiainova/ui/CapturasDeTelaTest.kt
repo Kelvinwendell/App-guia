@@ -12,11 +12,14 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import br.com.fiap.aguiainova.AguiaInovaApp
@@ -131,6 +134,28 @@ class CapturasDeTelaTest {
         esperar("Máquina de café premium") // a lista e "lazy": esperamos pelo item mais novo, que fica no topo
         capturar("03-operador-ideias")
 
+        compose.onNodeWithText("Aprovadas da empresa").performClick()
+        esperar("Sensores de vibração")
+        capturar("03b-operador-ideias-aprovadas")
+
+        irParaAba("Estratégia")
+        esperar("Segurança e bem-estar do colaborador") // a lista e "lazy": espera pelo item que aparece no topo
+        capturar("03c-operador-estrategia")
+
+        compose.onNodeWithText("Segurança e bem-estar do colaborador").performClick()
+        esperar("Metas")
+        esperar("Tem uma ideia que ajuda nisso?")
+        capturar("03d-operador-estrategia-detalhe")
+    }
+
+    @Test
+    fun operadorCriaIdeia() {
+        entrarComo("vinicius@gmail.com")
+        abrirApp()
+        esperar("Painel do Operador")
+        irParaAba("Ideias")
+        esperar("Máquina de café premium")
+
         compose.onNodeWithContentDescription("Nova ideia").performClick()
         esperar("Descreva sua ideia")
         capturar("04-operador-nova-ideia")
@@ -178,6 +203,22 @@ class CapturasDeTelaTest {
         capturar("09-gestor-projeto-detalhe")
     }
 
+    /** "Direção" e a tela de estratégias do gestor: saúde de cada estratégia e, na primeira aba, o assistente de IA. */
+    @Test
+    fun gestorDirecao() {
+        entrarComo("anna@gmail.com")
+        abrirApp()
+        esperar("Painel do Gestor")
+
+        irParaAba("Direção")
+        esperar("Próxima ação")
+        capturar("07b-gestor-direcao-saude-das-estrategias")
+
+        compose.onNodeWithText("Segurança e bem-estar do colaborador").performClick()
+        esperar("Saúde da estratégia")
+        capturar("07c-gestor-estrategia-detalhe")
+    }
+
     @Test
     fun assistenteDeIa() {
         entrarComo("anna@gmail.com")
@@ -187,6 +228,12 @@ class CapturasDeTelaTest {
         esperar("Sua pergunta")
         esperar("IA ")
         capturar("10-gestor-assistente-ia")
+
+        // a conversa e da tela de Direção: continua ao trocar de aba
+        compose.onNodeWithText("Vigentes").performClick()
+        esperar("Próxima ação")
+        compose.onNodeWithText("Assistente").performClick()
+        esperar("Sua pergunta")
     }
 
     @Test
@@ -197,27 +244,74 @@ class CapturasDeTelaTest {
         esperar("16")
         capturar("11-lideranca-home")
 
-        irParaAba("Estratégias")
-        esperar("Zero Desperdício")
+        irParaAba("Estratégia")
+        esperar("Segurança e bem-estar do colaborador") // a lista e "lazy": espera pelo item que aparece no topo
+        esperar("em risco")
         capturar("13-lideranca-estrategias")
 
-        compose.onNodeWithContentDescription("Histórico").performClick()
-        esperar("Histórico de estratégias")
+        compose.onNodeWithText("Segurança e bem-estar do colaborador").performClick()
+        esperar("Saúde da estratégia")
+        esperar("Ler com IA")
+        capturar("13b-lideranca-estrategia-detalhe")
+        compose.onNodeWithText("Ler com IA", substring = true).performScrollTo().performClick()
+        esperar("Recomendações")
+        capturar("13c-lideranca-leitura-da-saude")
+    }
+
+    @Test
+    fun liderancaCriaEstrategiaComIa() {
+        entrarComo("gabriela@gmail.com")
+        abrirApp()
+        esperar("Painel da Liderança")
+        irParaAba("Estratégia")
+        esperar("Segurança e bem-estar do colaborador") // a lista e "lazy": espera pelo item que aparece no topo
+
+        compose.onNodeWithContentDescription("Nova estratégia").performClick()
+        esperar("Escrever com IA")
+        capturar("13d-lideranca-nova-estrategia")
+
+        compose.onNodeWithText("Título").performTextInput("Reduzir desperdício de material")
+        compose.onNodeWithText("Descrição").performTextInput("Reduzir o desperdício de material nas linhas de produção.")
+        compose.onNodeWithText("Categoria").performTextInput("Sustentabilidade")
+        compose.onNodeWithText("Analisar com IA", substring = true).performScrollTo().performClick()
+        esperar("O que melhorar")
+        capturar("13e-lideranca-analise-da-estrategia")
+    }
+
+    @Test
+    fun liderancaVeOHistoricoDeEstrategias() {
+        entrarComo("gabriela@gmail.com")
+        abrirApp()
+        esperar("Painel da Liderança")
+        irParaAba("Estratégia")
+        esperar("Segurança e bem-estar do colaborador") // a lista e "lazy": espera pelo item que aparece no topo
+
+        compose.onNodeWithText("Histórico").performClick()
         esperar("E-commerce 2025") // registro mais recente, no topo da lista
         capturar("14-lideranca-historico-de-estrategias")
     }
 
-    /** O dashboard rola; uma janela bem alta mostra tudo de uma vez numa unica imagem. */
+    /** O painel tem quatro abas; cada uma e capturada separadamente. */
     @Test
-    @Config(qualifiers = "w411dp-h2300dp-xhdpi")
-    fun dashboardDaLideranca() {
+    fun painelDaLideranca() {
         entrarComo("gabriela@gmail.com")
         abrirApp()
         esperar("Painel da Liderança")
-        irParaAba("Dashboard")
-        esperar("Painel Estratégico")
-        esperar("Insights de IA")
+        irParaAba("Painel")
+        esperar("Produtividade")
+        capturar("12-lideranca-painel-resumo")
+
+        compose.onNodeWithText("Estratégias").performClick()
+        esperar("Saúde das estratégias")
+        esperar("ROI por estratégia")
+        capturar("12b-lideranca-painel-estrategias")
+
+        compose.onAllNodesWithText("Projetos").onFirst().performClick() // a primeira e a aba (a segunda, a barra inferior)
         esperar("Retorno por mês")
-        capturar("12-lideranca-dashboard")
+        capturar("12c-lideranca-painel-projetos")
+
+        compose.onNodeWithText("Insights IA").performClick()
+        esperar("Gerar insights")
+        capturar("12d-lideranca-painel-insights")
     }
 }

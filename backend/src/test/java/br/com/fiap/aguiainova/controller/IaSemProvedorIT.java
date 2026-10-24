@@ -3,6 +3,7 @@ package br.com.fiap.aguiainova.controller;
 import java.time.LocalDate;
 import java.util.Map;
 
+import br.com.fiap.aguiainova.model.Estrategia;
 import br.com.fiap.aguiainova.model.Usuario;
 import br.com.fiap.aguiainova.model.enums.Perfil;
 import br.com.fiap.aguiainova.model.enums.StatusProjeto;
@@ -169,5 +170,67 @@ class IaSemProvedorIT extends AbstractIntegrationTest {
     @Test
     void chatValidaAMensagem() throws Exception {
         post(gestor, "/api/ia/chat", Map.of("mensagem", " ")).andExpect(status().isBadRequest());
+    }
+
+    private String estrategiaDaPreparacao() {
+        return mongo.findAll(Estrategia.class).get(0).getId();
+    }
+
+    @Test
+    void rascunhoDeEstrategiaNaoTemSubstitutoESemProvedorResponde503() throws Exception {
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Reduzir o desperdício"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(containsString("não está configurada")));
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", " ")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void analiseDeEstrategiaSemProvedorUsaRegrasEApontaLacunasESobreposicao() throws Exception {
+        post(lideranca, "/api/ia/estrategias/analise", Map.of("estrategia", Map.of(
+                "titulo", "Reduzir desperdício de material",
+                "descricao", "Reduzir desperdício de material na produção",
+                "categoria", "Sustentabilidade")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fonte").value("HEURISTICA"))
+                .andExpect(jsonPath("$.nota").value(lessThanOrEqualTo(100)))
+                .andExpect(jsonPath("$.melhorias").isNotEmpty())
+                .andExpect(jsonPath("$.sobreposicoes", hasSize(1)))
+                .andExpect(jsonPath("$.sobreposicoes[0].titulo").value("Redução de desperdício na produção"))
+                .andExpect(jsonPath("$.geradaEm").isNotEmpty());
+    }
+
+    @Test
+    void analiseDeUmaEstrategiaJaSalvaNaoACompararComSiMesma() throws Exception {
+        post(lideranca, "/api/ia/estrategias/analise", Map.of("estrategiaId", estrategiaDaPreparacao(),
+                "estrategia", Map.of("titulo", "Redução de desperdício na produção",
+                        "descricao", "Descrição de Redução de desperdício na produção", "categoria", "Sustentabilidade")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sobreposicoes", hasSize(0)));
+    }
+
+    @Test
+    void analiseValidaOsCamposDaEstrategia() throws Exception {
+        post(lideranca, "/api/ia/estrategias/analise", Map.of("estrategia", Map.of("titulo", " ", "descricao", "d",
+                "categoria", "c"))).andExpect(status().isBadRequest());
+        post(lideranca, "/api/ia/estrategias/analise", Map.of()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void leituraDaSaudeSemProvedorReaproveitaAsRegras() throws Exception {
+        post(gestor, "/api/ia/estrategias/" + estrategiaDaPreparacao() + "/saude", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fonte").value("HEURISTICA"))
+                .andExpect(jsonPath("$.saude.nivel").value("EM_DIA"))
+                .andExpect(jsonPath("$.leitura").value(containsString("está em dia")))
+                .andExpect(jsonPath("$.recomendacoes").isNotEmpty())
+                .andExpect(jsonPath("$.geradaEm").isNotEmpty());
+    }
+
+    @Test
+    void leituraDaSaudeDeEstrategiaInexistenteOuEncerradaFalha() throws Exception {
+        String encerrada = cenarios.estrategiaEncerrada(logado(lideranca), "Encerrada");
+
+        post(gestor, "/api/ia/estrategias/000000000000000000000000/saude", null).andExpect(status().isNotFound());
+        post(gestor, "/api/ia/estrategias/" + encerrada + "/saude", null).andExpect(status().is(422));
     }
 }

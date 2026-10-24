@@ -51,4 +51,51 @@ class RateLimitingIT extends AbstractIntegrationTest {
         }
         post(gestor, "/api/ia/chat", corpo).andExpect(status().isTooManyRequests());
     }
+
+    @Test
+    void rascunhoCriticaELeituraDeEstrategiaDividemOLimiteDeIaDoUsuario() throws Exception {
+        Usuario lideranca = criarUsuario(Perfil.LIDERANCA);
+        String estrategia = cenarios.estrategia(logado(lideranca), "Estratégia de teste", "Geral", "C1");
+        Map<String, Object> rascunho = Map.of("objetivo", "Reduzir o desperdício");
+        Map<String, Object> analise = Map.of("estrategia", Map.of("titulo", "Título da estratégia",
+                "descricao", "Descrição", "categoria", "Geral"));
+        String leitura = "/api/ia/estrategias/" + estrategia + "/saude";
+
+        // tres chamadas passam (rascunho sem IA: 503; critica e leitura caem nas regras: 200) e esgotam o balde
+        post(lideranca, "/api/ia/estrategias/rascunho", rascunho).andExpect(status().isServiceUnavailable());
+        post(lideranca, "/api/ia/estrategias/analise", analise).andExpect(status().isOk());
+        post(lideranca, leitura, null).andExpect(status().isOk());
+
+        post(lideranca, "/api/ia/estrategias/rascunho", rascunho).andExpect(status().isTooManyRequests());
+        post(lideranca, "/api/ia/estrategias/analise", analise).andExpect(status().isTooManyRequests());
+        post(lideranca, leitura, null).andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void leituraDaSaudeDeEstrategiaDividemOLimiteComOChatDoGestor() throws Exception {
+        Usuario gestor = criarUsuario(Perfil.GESTOR);
+        String estrategia = cenarios.estrategia(logado(criarUsuario(Perfil.LIDERANCA)), "Estratégia de teste", "Geral", "C1");
+        Map<String, Object> chat = Map.of("mensagem", "quais ideias priorizar?");
+
+        post(gestor, "/api/ia/chat", chat).andExpect(status().isServiceUnavailable());
+        post(gestor, "/api/ia/chat", chat).andExpect(status().isServiceUnavailable());
+        post(gestor, "/api/ia/estrategias/" + estrategia + "/saude", null).andExpect(status().isOk());
+
+        post(gestor, "/api/ia/chat", chat).andExpect(status().isTooManyRequests());
+        post(gestor, "/api/ia/estrategias/" + estrategia + "/saude", null).andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void oLimiteDeIaDasEstrategiasEPorUsuario() throws Exception {
+        Usuario esgotado = criarUsuario(Perfil.LIDERANCA);
+        Usuario outro = criarUsuario(Perfil.LIDERANCA);
+        Map<String, Object> analise = Map.of("estrategia", Map.of("titulo", "Título da estratégia",
+                "descricao", "Descrição", "categoria", "Geral"));
+        for (int i = 0; i < 3; i++) {
+            post(esgotado, "/api/ia/estrategias/analise", analise).andExpect(status().isOk());
+        }
+        post(esgotado, "/api/ia/estrategias/analise", analise).andExpect(status().isTooManyRequests());
+
+        post(outro, "/api/ia/estrategias/analise", analise).andExpect(status().isOk());
+    }
 }

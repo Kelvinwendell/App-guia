@@ -2,6 +2,7 @@ package br.com.fiap.aguiainova.service.ia;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 import br.com.fiap.aguiainova.integration.ai.LlmIndisponivelException;
 import br.com.fiap.aguiainova.model.AvaliacaoIa;
@@ -112,6 +113,104 @@ class InterpretadorRespostaIaTest {
     @Test
     void insightsVaziosNaoSaoAceitos() {
         assertThatThrownBy(() -> interpretador.interpretarInsights("{\"resumo\":\" \",\"insights\":[]}", "GEMINI"))
+                .isInstanceOf(LlmIndisponivelException.class);
+    }
+
+    @Test
+    void interpretaORascunhoDeEstrategiaDentroDeMarkdown() {
+        RascunhoGerado rascunho = interpretador.interpretarRascunho("Aqui está:\n```json\n{\"titulo\":\" Fábrica 4.0 \","
+                + "\"descricao\":\"Digitalizar a fábrica.\",\"categoria\":\"Tecnologia\",\"campanha\":\"F40\","
+                + "\"metas\":[\"Reduzir paradas em 20%\",\"\",\"Monitorar 100%\"],\"inicio\":\"2026-11-01\","
+                + "\"fim\":\"2027-04-30\",\"extra\":1}\n```", "GEMINI");
+
+        assertThat(rascunho.titulo()).isEqualTo("Fábrica 4.0");
+        assertThat(rascunho.categoria()).isEqualTo("Tecnologia");
+        assertThat(rascunho.campanha()).isEqualTo("F40");
+        assertThat(rascunho.metas()).containsExactly("Reduzir paradas em 20%", "Monitorar 100%");
+        assertThat(rascunho.inicio()).hasToString("2026-11-01");
+        assertThat(rascunho.fim()).hasToString("2027-04-30");
+        assertThat(rascunho.fonte()).isEqualTo("GEMINI");
+    }
+
+    @Test
+    void rascunhoSemTituloOuDescricaoNaoEAceito() {
+        assertThatThrownBy(() -> interpretador.interpretarRascunho("{\"titulo\":\"\",\"descricao\":\"x\"}", "GEMINI"))
+                .isInstanceOf(LlmIndisponivelException.class);
+        assertThatThrownBy(() -> interpretador.interpretarRascunho("{\"titulo\":\"x\"}", "GEMINI"))
+                .isInstanceOf(LlmIndisponivelException.class);
+    }
+
+    @Test
+    void rascunhoUsaPadroesSeguros() {
+        RascunhoGerado rascunho = interpretador.interpretarRascunho("{\"titulo\":\"T\",\"descricao\":\"D\","
+                + "\"campanha\":\"  \",\"metas\":[\"" + "m".repeat(500) + "\"],\"inicio\":\"amanhã\","
+                + "\"fim\":\"2027-04-30\"}", "OPENAI");
+
+        assertThat(rascunho.categoria()).isEqualTo("Geral");
+        assertThat(rascunho.campanha()).isNull();
+        assertThat(rascunho.inicio()).isNull();
+        assertThat(rascunho.fim()).hasToString("2027-04-30");
+        assertThat(rascunho.metas().get(0)).hasSize(200);
+    }
+
+    @Test
+    void rascunhoComFimAntesDoInicioDescartaOPeriodo() {
+        RascunhoGerado rascunho = interpretador.interpretarRascunho("{\"titulo\":\"T\",\"descricao\":\"D\","
+                + "\"inicio\":\"2027-05-01\",\"fim\":\"2027-01-01\"}", "GEMINI");
+
+        assertThat(rascunho.inicio()).isNull();
+        assertThat(rascunho.fim()).isNull();
+    }
+
+    @Test
+    void rascunhoRespeitaOsLimitesDeTamanhoDaApi() {
+        RascunhoGerado rascunho = interpretador.interpretarRascunho("{\"titulo\":\"" + "t".repeat(400)
+                + "\",\"descricao\":\"" + "d".repeat(3000) + "\",\"categoria\":\"" + "c".repeat(200) + "\","
+                + "\"campanha\":\"" + "p".repeat(300) + "\",\"metas\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\"]}",
+                "GEMINI");
+
+        assertThat(rascunho.titulo()).hasSize(150);
+        assertThat(rascunho.descricao()).hasSize(2000);
+        assertThat(rascunho.categoria()).hasSize(80);
+        assertThat(rascunho.campanha()).hasSize(120);
+        assertThat(rascunho.metas()).hasSize(5);
+    }
+
+    @Test
+    void interpretaAAnaliseLimitandoANotaEFiltrandoSobreposicoesDesconhecidas() {
+        AnaliseGerada analise = interpretador.interpretarAnalise("{\"nota\":170,\"resumo\":\"Boa\","
+                + "\"pontosFortes\":[\"Clara\"],\"melhorias\":[\"Metas\",\"\"],"
+                + "\"sobreposicoes\":[\"e-1\",\" e-1 \",\"inventado\",null]}", "GEMINI", Set.of("e-1", "e-2"));
+
+        assertThat(analise.nota()).isEqualTo(100);
+        assertThat(analise.resumo()).isEqualTo("Boa");
+        assertThat(analise.pontosFortes()).containsExactly("Clara");
+        assertThat(analise.melhorias()).containsExactly("Metas");
+        assertThat(analise.sobreposicoes()).containsExactly("e-1");
+        assertThat(analise.fonte()).isEqualTo("GEMINI");
+    }
+
+    @Test
+    void analiseSemNotaNaoEAceitaESemResumoUsaTextoPadrao() {
+        assertThatThrownBy(() -> interpretador.interpretarAnalise("{\"resumo\":\"x\"}", "GEMINI", Set.of()))
+                .isInstanceOf(LlmIndisponivelException.class);
+        assertThat(interpretador.interpretarAnalise("{\"nota\":50}", "GEMINI", Set.of()).resumo())
+                .isEqualTo("Sem resumo informado pelo modelo.");
+    }
+
+    @Test
+    void interpretaALeituraDaSaude() {
+        LeituraGerada leitura = interpretador.interpretarLeitura("{\"leitura\":\" Em risco por atraso. \","
+                + "\"recomendacoes\":[\"Renegociar o prazo\",\"\"]}", "OPENAI");
+
+        assertThat(leitura.leitura()).isEqualTo("Em risco por atraso.");
+        assertThat(leitura.recomendacoes()).containsExactly("Renegociar o prazo");
+        assertThat(leitura.fonte()).isEqualTo("OPENAI");
+    }
+
+    @Test
+    void leituraVaziaNaoEAceita() {
+        assertThatThrownBy(() -> interpretador.interpretarLeitura("{\"leitura\":\" \",\"recomendacoes\":[\"a\"]}", "GEMINI"))
                 .isInstanceOf(LlmIndisponivelException.class);
     }
 }

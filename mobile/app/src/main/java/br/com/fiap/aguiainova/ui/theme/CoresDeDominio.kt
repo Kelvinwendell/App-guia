@@ -3,6 +3,7 @@ package br.com.fiap.aguiainova.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import br.com.fiap.aguiainova.domain.model.NivelSaude
 import br.com.fiap.aguiainova.domain.model.Prioridade
 import br.com.fiap.aguiainova.domain.model.StatusEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusIdeia
@@ -27,6 +28,13 @@ fun Prioridade.cor(): Color = when (this) {
 fun StatusEstrategia.cor(): Color = when (this) {
     StatusEstrategia.VIGENTE -> AguiaCores.Sucesso
     StatusEstrategia.ENCERRADA -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+@Composable
+fun NivelSaude.cor(): Color = when (this) {
+    NivelSaude.EM_DIA -> AguiaCores.Sucesso
+    NivelSaude.EM_RISCO -> AguiaCores.Erro
+    NivelSaude.SEM_TRACAO -> AguiaCores.Alerta
 }
 
 @Composable

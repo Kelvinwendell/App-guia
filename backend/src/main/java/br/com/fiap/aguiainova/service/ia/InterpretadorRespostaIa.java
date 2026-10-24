@@ -1,11 +1,14 @@
 package br.com.fiap.aguiainova.service.ia;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import br.com.fiap.aguiainova.integration.ai.LlmIndisponivelException;
 import br.com.fiap.aguiainova.model.AvaliacaoIa;
@@ -30,6 +33,14 @@ public class InterpretadorRespostaIa {
     private static final int MAXIMO_TEXTO_ITEM = 250;
     private static final int MAXIMO_JUSTIFICATIVA = 600;
     private static final String JUSTIFICATIVA_PADRAO = "Sem justificativa informada pelo modelo.";
+    private static final String RESUMO_PADRAO = "Sem resumo informado pelo modelo.";
+    private static final String CATEGORIA_PADRAO = "Geral";
+    // Limites iguais aos da validacao de EstrategiaRequest: o rascunho tem de poder ser salvo sem ajustes de tamanho.
+    private static final int MAXIMO_TITULO = 150;
+    private static final int MAXIMO_DESCRICAO_ESTRATEGIA = 2000;
+    private static final int MAXIMO_CATEGORIA = 80;
+    private static final int MAXIMO_CAMPANHA = 120;
+    private static final int MAXIMO_META = 200;
 
     private final JsonMapper json;
 
@@ -61,6 +72,51 @@ public class InterpretadorRespostaIa {
             throw new LlmIndisponivelException("A IA não devolveu insights utilizáveis.");
         }
         return new InsightsGerados(resumo, insights, recomendacoes, fonte);
+    }
+
+    public RascunhoGerado interpretarRascunho(String texto, String fonte) {
+        RespostaRascunho resposta = ler(texto, RespostaRascunho.class);
+        String titulo = Textos.truncar(resposta.titulo(), MAXIMO_TITULO);
+        String descricao = Textos.truncar(resposta.descricao(), MAXIMO_DESCRICAO_ESTRATEGIA);
+        if (titulo.isBlank() || descricao.isBlank()) {
+            throw new LlmIndisponivelException("A IA não devolveu um rascunho utilizável.");
+        }
+        String categoria = Textos.truncar(resposta.categoria(), MAXIMO_CATEGORIA);
+        LocalDate inicio = lerData(resposta.inicio());
+        LocalDate fim = lerData(resposta.fim());
+        if (inicio != null && fim != null && fim.isBefore(inicio)) {
+            inicio = null;
+            fim = null;
+        }
+        return new RascunhoGerado(titulo, descricao, categoria.isBlank() ? CATEGORIA_PADRAO : categoria,
+                Textos.ouNulo(Textos.truncar(resposta.campanha(), MAXIMO_CAMPANHA)),
+                limparLista(resposta.metas(), MAXIMO_META), inicio, fim, fonte);
+    }
+
+    /** As sobreposicoes citadas pelo modelo so valem se forem ids de estrategias que ele realmente recebeu. */
+    public AnaliseGerada interpretarAnalise(String texto, String fonte, Set<String> idsConhecidos) {
+        RespostaAnalise resposta = ler(texto, RespostaAnalise.class);
+        if (resposta.nota() == null) {
+            throw new LlmIndisponivelException("A IA não devolveu uma análise utilizável.");
+        }
+        String resumo = Textos.truncar(resposta.resumo(), MAXIMO_JUSTIFICATIVA);
+        List<String> sobreposicoes = resposta.sobreposicoes() == null ? List.of() : resposta.sobreposicoes().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(idsConhecidos::contains)
+                .distinct()
+                .toList();
+        return new AnaliseGerada(limitar(resposta.nota()), resumo.isBlank() ? RESUMO_PADRAO : resumo,
+                limparLista(resposta.pontosFortes()), limparLista(resposta.melhorias()), sobreposicoes, fonte);
+    }
+
+    public LeituraGerada interpretarLeitura(String texto, String fonte) {
+        RespostaLeitura resposta = ler(texto, RespostaLeitura.class);
+        String leitura = Textos.truncar(resposta.leitura(), MAXIMO_JUSTIFICATIVA);
+        if (leitura.isBlank()) {
+            throw new LlmIndisponivelException("A IA não devolveu uma leitura utilizável.");
+        }
+        return new LeituraGerada(leitura, limparLista(resposta.recomendacoes()), fonte);
     }
 
     private <T> T ler(String texto, Class<T> tipo) {
@@ -102,6 +158,10 @@ public class InterpretadorRespostaIa {
     }
 
     private static List<String> limparLista(List<String> itens) {
+        return limparLista(itens, MAXIMO_TEXTO_ITEM);
+    }
+
+    private static List<String> limparLista(List<String> itens, int maximoPorItem) {
         if (itens == null) {
             return List.of();
         }
@@ -109,8 +169,20 @@ public class InterpretadorRespostaIa {
                 .filter(Objects::nonNull)
                 .filter(StringUtils::hasText)
                 .limit(MAXIMO_ITENS_LISTA)
-                .map(item -> Textos.truncar(item, MAXIMO_TEXTO_ITEM))
+                .map(item -> Textos.truncar(item, maximoPorItem))
                 .toList();
+    }
+
+    /** Data no formato ISO (yyyy-MM-dd) ou nulo se o modelo devolveu algo que nao e uma data. */
+    private static LocalDate lerData(String valor) {
+        if (!StringUtils.hasText(valor)) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(valor.strip());
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -124,5 +196,19 @@ public class InterpretadorRespostaIa {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record RespostaInsights(String resumo, List<String> insights, List<String> recomendacoes) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RespostaRascunho(String titulo, String descricao, String categoria, String campanha, List<String> metas,
+            String inicio, String fim) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RespostaAnalise(Integer nota, String resumo, List<String> pontosFortes, List<String> melhorias,
+            List<String> sobreposicoes) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RespostaLeitura(String leitura, List<String> recomendacoes) {
     }
 }

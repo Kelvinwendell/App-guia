@@ -2,6 +2,7 @@ package br.com.fiap.aguiainova.domain.repository
 
 import br.com.fiap.aguiainova.core.network.Resultado
 import br.com.fiap.aguiainova.domain.model.AndamentoProjeto
+import br.com.fiap.aguiainova.domain.model.AnaliseEstrategia
 import br.com.fiap.aguiainova.domain.model.AvaliacaoIdeia
 import br.com.fiap.aguiainova.domain.model.AvaliacaoIdeiaIa
 import br.com.fiap.aguiainova.domain.model.DadosEstrategia
@@ -16,13 +17,16 @@ import br.com.fiap.aguiainova.domain.model.EtapaProjeto
 import br.com.fiap.aguiainova.domain.model.EvolucaoMensal
 import br.com.fiap.aguiainova.domain.model.Ideia
 import br.com.fiap.aguiainova.domain.model.InsightsIa
+import br.com.fiap.aguiainova.domain.model.LeituraSaude
 import br.com.fiap.aguiainova.domain.model.MensagemChat
 import br.com.fiap.aguiainova.domain.model.NovoUsuario
 import br.com.fiap.aguiainova.domain.model.Prioridade
 import br.com.fiap.aguiainova.domain.model.Projeto
 import br.com.fiap.aguiainova.domain.model.RankingIa
+import br.com.fiap.aguiainova.domain.model.RascunhoEstrategia
 import br.com.fiap.aguiainova.domain.model.RespostaChat
 import br.com.fiap.aguiainova.domain.model.ResumoDashboard
+import br.com.fiap.aguiainova.domain.model.SaudeEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusIa
 import br.com.fiap.aguiainova.domain.model.StatusIdeia
@@ -58,6 +62,12 @@ interface EstrategiaRepository {
     suspend fun remover(id: String): Resultado<Unit>
 
     suspend fun historico(categoria: String? = null, campanha: String? = null): Resultado<List<EstrategiaHistorico>>
+
+    /** Saude de cada estrategia vigente (GESTOR e LIDERANCA). */
+    suspend fun saude(): Resultado<List<SaudeEstrategia>>
+
+    /** Saude de uma estrategia vigente; o servidor recusa as encerradas. */
+    suspend fun saudeDe(id: String): Resultado<SaudeEstrategia>
 }
 
 interface IdeiaRepository {
@@ -119,4 +129,12 @@ interface IaRepository {
     suspend fun conversar(mensagem: String, historico: List<MensagemChat>): Resultado<RespostaChat>
 
     suspend fun insights(): Resultado<InsightsIa>
+
+    /** Rascunho de estrategia a partir de um objetivo (LIDERANCA); falha com "indisponivel" se nao ha IA. */
+    suspend fun rascunharEstrategia(objetivo: String): Resultado<RascunhoEstrategia>
+
+    /** Critica uma estrategia antes de salvar; sem IA, o servidor responde com a analise por regras. */
+    suspend fun analisarEstrategia(estrategiaId: String?, dados: DadosEstrategia): Resultado<AnaliseEstrategia>
+
+    suspend fun lerSaude(estrategiaId: String): Resultado<LeituraSaude>
 }

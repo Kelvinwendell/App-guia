@@ -6,6 +6,7 @@ import br.com.fiap.aguiainova.data.remote.api.EstrategiaApi
 import br.com.fiap.aguiainova.domain.model.DadosEstrategia
 import br.com.fiap.aguiainova.domain.model.Estrategia
 import br.com.fiap.aguiainova.domain.model.EstrategiaHistorico
+import br.com.fiap.aguiainova.domain.model.SaudeEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusEstrategia
 import br.com.fiap.aguiainova.domain.repository.EstrategiaRepository
 
@@ -28,4 +29,8 @@ class EstrategiaRepositoryRemoto(
 
     override suspend fun historico(categoria: String?, campanha: String?): Resultado<List<EstrategiaHistorico>> =
         chamar { api.historico(categoria?.takeIf { it.isNotBlank() }, campanha?.takeIf { it.isNotBlank() }) }
+
+    override suspend fun saude(): Resultado<List<SaudeEstrategia>> = chamar { api.saude() }
+
+    override suspend fun saudeDe(id: String): Resultado<SaudeEstrategia> = chamar { api.saudeDe(id) }
 }

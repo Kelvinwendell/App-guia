@@ -3,20 +3,15 @@ package br.com.fiap.aguiainova.service.ia;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import br.com.fiap.aguiainova.model.AvaliacaoIa;
 import br.com.fiap.aguiainova.model.Estrategia;
 import br.com.fiap.aguiainova.model.Ideia;
 import br.com.fiap.aguiainova.model.enums.Prioridade;
-import br.com.fiap.aguiainova.util.Textos;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -38,12 +33,6 @@ public class AvaliadorHeuristico implements AvaliadorDeIdeias {
     private static final int PERCENTUAL_ALINHAMENTO_BOM = 50;
     private static final int PERCENTUAL_ALINHAMENTO_BAIXO = 20;
     private static final double BONUS_MESMA_CATEGORIA = 0.25;
-    private static final int TAMANHO_MINIMO_PALAVRA = 4;
-    private static final int TAMANHO_RAIZ = 5;
-    private static final Set<String> PALAVRAS_VAZIAS = Set.of("para", "como", "mais", "isso", "esta", "esse", "essa",
-            "pelo", "pela", "seus", "suas", "entre", "sobre", "quando", "onde", "muito", "pode", "podem", "fazer",
-            "cada", "todo", "toda", "todos", "todas", "ainda", "assim", "apenas", "tambem", "porque", "nossa",
-            "nosso", "deve", "devem", "ideia", "empresa");
 
     private final Clock clock;
 
@@ -83,7 +72,7 @@ public class AvaliadorHeuristico implements AvaliadorDeIdeias {
     }
 
     private static Alinhamento melhorAlinhamento(Ideia ideia, List<Estrategia> estrategias) {
-        Set<String> palavrasDaIdeia = palavras(ideia.getTitulo(), ideia.getDescricao(), ideia.getCategoria());
+        Set<String> palavrasDaIdeia = PalavrasChave.de(ideia.getTitulo(), ideia.getDescricao(), ideia.getCategoria());
         Alinhamento melhor = new Alinhamento(0, null);
         for (Estrategia estrategia : estrategias) {
             double afinidade = afinidade(palavrasDaIdeia, estrategia);
@@ -98,25 +87,9 @@ public class AvaliadorHeuristico implements AvaliadorDeIdeias {
         return melhor;
     }
 
-    /** Fracao das palavras do menor dos dois textos que aparecem no outro (0 a 1). */
     private static double afinidade(Set<String> palavrasDaIdeia, Estrategia estrategia) {
-        Set<String> palavrasDaEstrategia = palavras(estrategia.getTitulo(), estrategia.getDescricao(),
-                estrategia.getCategoria(), estrategia.getCampanha());
-        if (palavrasDaIdeia.isEmpty() || palavrasDaEstrategia.isEmpty()) {
-            return 0;
-        }
-        long emComum = palavrasDaIdeia.stream().filter(palavrasDaEstrategia::contains).count();
-        return (double) emComum / Math.min(palavrasDaIdeia.size(), palavrasDaEstrategia.size());
-    }
-
-    /** Palavras normalizadas (minusculas, sem acento, sem palavras vazias, reduzidas a uma raiz curta). */
-    private static Set<String> palavras(String... textos) {
-        String junto = Arrays.stream(textos).filter(StringUtils::hasText).collect(Collectors.joining(" "));
-        return Arrays.stream(Textos.semAcentos(junto).toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
-                .filter(palavra -> palavra.length() >= TAMANHO_MINIMO_PALAVRA)
-                .filter(palavra -> !PALAVRAS_VAZIAS.contains(palavra))
-                .map(palavra -> palavra.substring(0, Math.min(palavra.length(), TAMANHO_RAIZ)))
-                .collect(Collectors.toCollection(HashSet::new));
+        return PalavrasChave.afinidade(palavrasDaIdeia, PalavrasChave.de(estrategia.getTitulo(),
+                estrategia.getDescricao(), estrategia.getCategoria(), estrategia.getCampanha()));
     }
 
     private static String justificativa(Ideia ideia, Alinhamento alinhamento) {

@@ -15,7 +15,8 @@ Service (IA) → LlmClient / AvaliadorDeIdeias / GeradorDeInsights (interfaces)
 ```
 
 **Padrões de projeto usados:**
-- **Strategy + Decorator** — `AvaliadorComContingencia`/`GeradorInsightsComContingencia`
+- **Strategy + Decorator** — `AvaliadorComContingencia`/`GeradorInsightsComContingencia`/
+  `AnalisadorEstrategiasComContingencia`/`LeitorSaudeComContingencia`
   decoram a estratégia de IA real com *fallback* automático para heurística local quando a
   IA não está configurada ou falha. Nunca deixe essa decoração "vazar": qualquer novo recurso
   de IA deve seguir o mesmo par (implementação real + heurística + decorator de contingência).

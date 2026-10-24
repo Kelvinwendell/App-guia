@@ -2,11 +2,15 @@ package br.com.fiap.aguiainova.ui.dashboard
 
 import androidx.lifecycle.viewModelScope
 import br.com.fiap.aguiainova.core.network.combinar
+import br.com.fiap.aguiainova.core.network.dadosOuNulo
+import br.com.fiap.aguiainova.core.network.mapear
 import br.com.fiap.aguiainova.domain.model.DesempenhoEstrategia
 import br.com.fiap.aguiainova.domain.model.EvolucaoMensal
 import br.com.fiap.aguiainova.domain.model.InsightsIa
 import br.com.fiap.aguiainova.domain.model.ResumoDashboard
+import br.com.fiap.aguiainova.domain.model.SaudeEstrategia
 import br.com.fiap.aguiainova.domain.repository.DashboardRepository
+import br.com.fiap.aguiainova.domain.repository.EstrategiaRepository
 import br.com.fiap.aguiainova.domain.repository.IaRepository
 import br.com.fiap.aguiainova.ui.common.BaseViewModel
 import br.com.fiap.aguiainova.ui.common.Estado
@@ -19,11 +23,14 @@ import kotlinx.coroutines.launch
 data class DadosDashboard(
     val resumo: ResumoDashboard,
     val porEstrategia: List<DesempenhoEstrategia>,
-    val evolucao: List<EvolucaoMensal>
+    val evolucao: List<EvolucaoMensal>,
+    /** Saude de cada estrategia vigente; vazia se nao foi possivel calcula-la (o resto do painel segue valendo). */
+    val saude: List<SaudeEstrategia> = emptyList()
 )
 
 class DashboardViewModel(
     private val dashboard: DashboardRepository,
+    private val estrategias: EstrategiaRepository,
     private val ia: IaRepository
 ) : BaseViewModel() {
 
@@ -45,6 +52,7 @@ class DashboardViewModel(
                 .combinar(dashboard.evolucao(estrategiaId = estrategiaId)) { (resumo, porEstrategia), evolucao ->
                     DadosDashboard(resumo, porEstrategia, evolucao)
                 }
+                .mapear { it.copy(saude = estrategias.saude().dadosOuNulo().orEmpty()) }
         }
     }
 

@@ -31,6 +31,12 @@ enum class StatusEstrategia(val rotulo: String) {
     ENCERRADA("Encerrada")
 }
 
+enum class NivelSaude(val rotulo: String) {
+    EM_DIA("Em dia"),
+    EM_RISCO("Em risco"),
+    SEM_TRACAO("Sem tração")
+}
+
 enum class AcaoEstrategia(val rotulo: String) {
     CRIADA("Criada"),
     ATUALIZADA("Atualizada"),

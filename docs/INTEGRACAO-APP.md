@@ -22,10 +22,12 @@ O app não tem dados próprios: tudo o que aparece vem da API (sem mocks) e tudo
 | Ideias (triagem) | G | `GET /api/ideias`, `PATCH /api/ideias/{id}/avaliacao`, `POST /api/ia/ideias/avaliar-pendentes`, `POST /api/ia/ideias/{id}/avaliar` |
 | Projetos | G · L | `GET /api/projetos`; G também `POST/PUT/PATCH/DELETE` |
 | Detalhe do projeto | G · L | `GET /api/projetos/{id}`; G: `PATCH …/progresso`, `POST/DELETE …/resultados` |
-| Assistente de IA | G | `GET /api/ia/status`, `POST /api/ia/chat` |
-| Estratégias | todos leem · L edita | `GET /api/estrategias`; L: `POST/PUT/DELETE` |
-| Histórico de estratégias | L | `GET /api/estrategias/historico?categoria=&campanha=` |
-| Dashboard | L | `/api/dashboard/resumo`, `/estrategias`, `/evolucao` e `POST /api/ia/dashboard/insights` |
+| Estratégia (aba *Vigentes*/*Encerradas*) | todos leem · L edita | `GET /api/estrategias`; G e L também `GET /api/estrategias/saude` (selo de saúde em cada cartão) |
+| Estratégia (aba *Histórico*) | todos | `GET /api/estrategias/historico` (os filtros por categoria e campanha são feitos no app) |
+| Direção › aba *Assistente* | G | `GET /api/ia/status`, `POST /api/ia/chat` |
+| Detalhe da estratégia | todos · saúde: G, L | `GET /api/estrategias/{id}`; G e L: `GET /api/estrategias/{id}/saude` e, sob demanda, `POST /api/ia/estrategias/{id}/saude`; L: `DELETE` |
+| Nova/Editar estratégia | L | `POST/PUT /api/estrategias`; `POST /api/ia/estrategias/rascunho` (só criação) e `POST /api/ia/estrategias/analise` |
+| Painel | L | `/api/dashboard/resumo`, `/estrategias`, `/evolucao`, `GET /api/estrategias/saude` e `POST /api/ia/dashboard/insights` |
 
 A barra inferior e os botões mudam conforme o perfil, mas **quem garante a regra é o servidor**: mesmo um app adulterado
 receberia 403.

@@ -6,8 +6,10 @@ import java.util.List;
 import br.com.fiap.aguiainova.dto.request.EstrategiaRequest;
 import br.com.fiap.aguiainova.dto.response.EstrategiaHistoricoResponse;
 import br.com.fiap.aguiainova.dto.response.EstrategiaResponse;
+import br.com.fiap.aguiainova.dto.response.SaudeEstrategiaResponse;
 import br.com.fiap.aguiainova.model.enums.StatusEstrategia;
 import br.com.fiap.aguiainova.security.UsuarioLogado;
+import br.com.fiap.aguiainova.service.EstrategiaSaudeService;
 import br.com.fiap.aguiainova.service.EstrategiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,9 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class EstrategiaController {
 
     private final EstrategiaService estrategias;
+    private final EstrategiaSaudeService saude;
 
-    public EstrategiaController(EstrategiaService estrategias) {
+    public EstrategiaController(EstrategiaService estrategias, EstrategiaSaudeService saude) {
         this.estrategias = estrategias;
+        this.saude = saude;
     }
 
     @GetMapping
@@ -43,6 +47,20 @@ public class EstrategiaController {
     public List<EstrategiaResponse> listar(@RequestParam(required = false) StatusEstrategia status,
             @RequestParam(required = false) String categoria, @RequestParam(required = false) String campanha) {
         return estrategias.listar(status, categoria, campanha);
+    }
+
+    @GetMapping("/saude")
+    @PreAuthorize("hasAnyRole('GESTOR','LIDERANCA')")
+    @Operation(summary = "Saúde de cada estratégia vigente, apurada por regras (GESTOR, LIDERANCA)")
+    public List<SaudeEstrategiaResponse> saudeDasVigentes() {
+        return saude.listarVigentes();
+    }
+
+    @GetMapping("/{id}/saude")
+    @PreAuthorize("hasAnyRole('GESTOR','LIDERANCA')")
+    @Operation(summary = "Saúde de uma estratégia vigente: nível, motivos e próxima ação (GESTOR, LIDERANCA)")
+    public SaudeEstrategiaResponse saude(@PathVariable String id) {
+        return saude.obter(id);
     }
 
     @GetMapping("/{id}")

@@ -1,5 +1,10 @@
 package br.com.fiap.aguiainova.model;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import br.com.fiap.aguiainova.model.enums.StatusEstrategia;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,6 +18,9 @@ public class Estrategia extends DocumentoBase {
     private String campanha;
     @Indexed
     private StatusEstrategia status;
+    private List<String> metas = new ArrayList<>();
+    private LocalDate inicio;
+    private LocalDate fim;
     private Autor autor;
 
     /** Exigido pelo Spring Data para reidratar o documento; o codigo da aplicacao usa o construtor publico. */
@@ -31,6 +39,9 @@ public class Estrategia extends DocumentoBase {
         this.descricao = dados.descricao();
         this.categoria = dados.categoria();
         this.campanha = dados.campanha();
+        this.metas = new ArrayList<>(dados.metas());
+        this.inicio = dados.inicio();
+        this.fim = dados.fim();
         if (dados.status() != null) {
             this.status = dados.status();
         }
@@ -58,6 +69,19 @@ public class Estrategia extends DocumentoBase {
 
     public StatusEstrategia getStatus() {
         return status;
+    }
+
+    /** Visao somente leitura; documentos antigos, gravados antes das metas existirem, devolvem lista vazia. */
+    public List<String> getMetas() {
+        return metas == null ? List.of() : Collections.unmodifiableList(metas);
+    }
+
+    public LocalDate getInicio() {
+        return inicio;
+    }
+
+    public LocalDate getFim() {
+        return fim;
     }
 
     public Autor getAutor() {

@@ -120,7 +120,8 @@ cd mobile && AGUIA_API_URL=http://localhost:8080/ ./gradlew testDebugUnitTest
 |---|---|---|---|
 | Cadastro / login / `me` | ✔ | ✔ | ✔ |
 | **Estratégias** — consultar e ver histórico (id, data, categoria, campanha) | ✔ | ✔ | ✔ |
-| Estratégias — criar / editar / excluir | ✘ | ✘ | ✔ |
+| Estratégias — criar / editar / excluir (com metas e período) | ✘ | ✘ | ✔ |
+| Estratégias — **saúde** (em dia, em risco ou sem tração) | ✘ | ✔ | ✔ |
 | **Ideias** — listar | só as próprias | todas | ✘ |
 | Ideias ‑ aprovadas da empresa | ✔ | ✔ | ✔ |
 | Ideias — criar / editar / excluir (enquanto *em análise*) | ✔ (só as suas) | ✘ | ✘ |
@@ -131,6 +132,8 @@ cd mobile && AGUIA_API_URL=http://localhost:8080/ ./gradlew testDebugUnitTest
 | Usuários — listar e mudar perfil | ✘ | ✘ | ✔ |
 | **IA** — avaliar ideias, ranking, assistente (chat) | ✘ | ✔ | ✘ |
 | IA — insights do dashboard | ✘ | ✘ | ✔ |
+| IA — rascunho e crítica de estratégias | ✘ | ✘ | ✔ |
+| IA — leitura da saúde de uma estratégia | ✘ | ✔ | ✔ |
 
 As regras são aplicadas **no servidor** (`@PreAuthorize` + verificações de dono no serviço); o app apenas esconde o que o
 perfil não pode usar. O perfil é relido do banco a cada requisição: rebaixar ou excluir um usuário vale na hora, sem
@@ -138,7 +141,7 @@ esperar o token expirar.
 
 ## IA (Sprint 2 — Inovação)
 
-Três recursos, todos com o **gestor/liderança como decisor** (a IA só sugere):
+Seis recursos, todos com o **gestor/liderança como decisor** (a IA só sugere):
 
 1. **Pontuação e priorização de ideias** — nota 0–100, alinhamento com a estratégia vigente, prioridade sugerida,
    pontos fortes e riscos. Sem IA disponível, cai automaticamente para uma **avaliação por regras** (marcada como
@@ -146,8 +149,16 @@ Três recursos, todos com o **gestor/liderança como decisor** (a IA só sugere)
 2. **Assistente do gestor (chat)** — ajuda a escolher ideias e montar projetos com base nos dados reais. Sem IA
    configurada, o app avisa "IA não configurada no servidor" (não há resposta inventada).
 3. **Insights do dashboard** — leitura executiva dos números; sem IA, gera uma leitura por regras.
+4. **Rascunho de estratégia** (liderança) — a partir de um objetivo escrito livremente, a IA propõe título, descrição,
+   categoria, metas mensuráveis e período; a liderança revisa antes de salvar. Não há substituto por regras: sem IA, o
+   app avisa que ela está indisponível.
+5. **Crítica de estratégia** (liderança) — antes de salvar, nota de 0 a 100 de maturidade (clareza, metas mensuráveis,
+   período), melhorias e **sobreposição** com as demais estratégias vigentes; sem IA, o mesmo resultado sai por regras.
+6. **Saúde da estratégia** (gestor e liderança) — cada estratégia vigente é classificada **por regras** (*em dia*,
+   *em risco* ou *sem tração*) com os motivos e a próxima ação; a IA, sob demanda, explica o diagnóstico e recomenda o
+   que fazer. A IA nunca altera o nível calculado.
 
-Para ligar a IA generativa, configure em `.env` (a chave fica **só no servidor**, nunca no app):
+Em produção (Render) as variáveis vão no painel do serviço: o passo a passo está em [`.context/deployment.md`](.context/deployment.md#ligando-a-ia-em-produção-passo-a-passo). Localmente, configure em `.env` (a chave fica **só no servidor**, nunca no app):
 
 | Provedor | `AI_PROVIDER` | `AI_BASE_URL` | Chave |
 |---|---|---|---|

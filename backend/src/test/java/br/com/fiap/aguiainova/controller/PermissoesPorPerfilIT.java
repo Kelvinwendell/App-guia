@@ -69,6 +69,8 @@ class PermissoesPorPerfilIT extends AbstractIntegrationTest {
                 ep(HttpMethod.POST, "/api/estrategias", ESTRATEGIA, 403, 403, 201),
                 ep(HttpMethod.PUT, "/api/estrategias/{estrategia}", ESTRATEGIA, 403, 403, 200),
                 ep(HttpMethod.DELETE, "/api/estrategias/{estrategia}", null, 403, 403, 204),
+                ep(HttpMethod.GET, "/api/estrategias/saude", null, 403, 200, 200),
+                ep(HttpMethod.GET, "/api/estrategias/{estrategia}/saude", null, 403, 200, 200),
                 ep(HttpMethod.GET, "/api/ideias", null, 200, 200, 403),
                 ep(HttpMethod.GET, "/api/ideias/aprovadas", null, 200, 200, 200),
                 ep(HttpMethod.GET, "/api/ideias/{ideia}", null, 200, 200, 403),
@@ -92,7 +94,12 @@ class PermissoesPorPerfilIT extends AbstractIntegrationTest {
                 ep(HttpMethod.POST, "/api/ia/ideias/avaliar-pendentes", null, 403, 200, 403),
                 // sem chave de API configurada nos testes, o chat responde 503 (mas so o gestor chega ate la)
                 ep(HttpMethod.POST, "/api/ia/chat", Map.of("mensagem", "Quais ideias priorizar?"), 403, 503, 403),
-                ep(HttpMethod.POST, "/api/ia/dashboard/insights", null, 403, 403, 200));
+                ep(HttpMethod.POST, "/api/ia/dashboard/insights", null, 403, 403, 200),
+                // rascunho nao tem substituto por regras: sem chave de API a lideranca recebe 503
+                ep(HttpMethod.POST, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Reduzir o desperdício"),
+                        403, 403, 503),
+                ep(HttpMethod.POST, "/api/ia/estrategias/analise", Map.of("estrategia", ESTRATEGIA), 403, 403, 200),
+                ep(HttpMethod.POST, "/api/ia/estrategias/{estrategia}/saude", null, 403, 200, 200));
         return endpoints.stream().flatMap(endpoint -> Stream.of(Perfil.values())
                 .map(perfil -> Arguments.of(endpoint, perfil)));
     }

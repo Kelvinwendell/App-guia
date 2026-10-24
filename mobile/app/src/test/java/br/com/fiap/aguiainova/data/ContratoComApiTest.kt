@@ -28,6 +28,7 @@ import br.com.fiap.aguiainova.domain.model.EtapaProjeto
 import br.com.fiap.aguiainova.domain.model.MensagemChat
 import br.com.fiap.aguiainova.domain.model.NovoUsuario
 import br.com.fiap.aguiainova.domain.model.PapelMensagem
+import br.com.fiap.aguiainova.domain.model.NivelSaude
 import br.com.fiap.aguiainova.domain.model.Perfil
 import br.com.fiap.aguiainova.domain.model.Prioridade
 import br.com.fiap.aguiainova.domain.model.StatusEstrategia
@@ -178,6 +179,63 @@ class ContratoComApiTest {
         val historico = ambiente.estrategias.historico(categoria = "teste", campanha = "campanha t").dados()
         assertTrue(historico.count { it.estrategiaId == criada.id } >= 3)
         assertTrue(historico.all { it.data.isNotBlank() && it.categoria.isNotBlank() })
+    }
+
+    @Test
+    fun estrategiaGuardaMetasEPeriodoELiderancaVeASaudeDeCadaVigente() = runTest {
+        entrarComo("gabriela@gmail.com")
+        val hoje = LocalDate.now()
+        val criada = ambiente.estrategias.criar(
+            DadosEstrategia(
+                "Estratégia com metas ${UUID.randomUUID()}", "Descrição", "Teste",
+                metas = listOf("Reduzir 10% até dezembro"), inicio = hoje.toString(), fim = hoje.plusMonths(6).toString()
+            )
+        ).dados()
+        assertEquals(listOf("Reduzir 10% até dezembro"), criada.metas)
+        assertEquals(hoje.toString(), criada.inicio)
+        assertEquals(hoje.plusMonths(6).toString(), criada.fim)
+
+        val saude = ambiente.estrategias.saude().dados()
+        val dela = saude.first { it.estrategiaId == criada.id }
+        assertEquals(NivelSaude.EM_DIA, dela.nivel)
+        assertTrue(dela.proximaAcao.isNotBlank() && dela.motivos.isNotEmpty())
+        assertEquals(dela, ambiente.estrategias.saudeDe(criada.id).dados())
+
+        entrarComo("vinicius@gmail.com")
+        assertEquals(TipoErro.PROIBIDO, (ambiente.estrategias.saude() as Resultado.Falha).tipo)
+
+        entrarComo("gabriela@gmail.com")
+        ambiente.estrategias.remover(criada.id).dados()
+    }
+
+    @Test
+    fun iaAnalisaRascunhaEstrategiasELeASaude() = runTest {
+        entrarComo("gabriela@gmail.com")
+        val status = ambiente.ia.status().dados()
+
+        val analise = ambiente.ia.analisarEstrategia(
+            null, DadosEstrategia("Reduzir desperdício de material", "Reduzir perdas de material na produção", "Sustentabilidade")
+        ).dados()
+        assertTrue(analise.nota in 0..100)
+        assertTrue(analise.resumo.isNotBlank())
+        assertTrue(analise.pontosFortes.isNotEmpty() || analise.melhorias.isNotEmpty())
+
+        val rascunho = ambiente.ia.rascunharEstrategia("Reduzir o desperdício nas linhas de produção")
+        if (status.disponivel) {
+            val dados = (rascunho as Resultado.Sucesso).dados
+            assertTrue(dados.titulo.isNotBlank() && dados.descricao.isNotBlank() && dados.categoria.isNotBlank())
+        } else {
+            assertEquals(TipoErro.INDISPONIVEL, (rascunho as Resultado.Falha).tipo)
+        }
+
+        val vigente = ambiente.estrategias.listar(StatusEstrategia.VIGENTE).dados().first()
+        val leitura = ambiente.ia.lerSaude(vigente.id).dados()
+        assertEquals(vigente.id, leitura.saude.estrategiaId)
+        assertTrue(leitura.leitura.isNotBlank() && leitura.recomendacoes.isNotEmpty())
+
+        entrarComo("vinicius@gmail.com")
+        val negado = ambiente.ia.analisarEstrategia(null, DadosEstrategia("X", "Y", "Z")) as Resultado.Falha
+        assertEquals(TipoErro.PROIBIDO, negado.tipo)
     }
 
     @Test

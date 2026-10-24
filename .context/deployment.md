@@ -46,6 +46,26 @@ Definidas no painel do Render (nunca no código, nunca versionadas):
 | `APP_ALLOW_ROLE_SELECTION` | `false` em produção |
 | `AI_ENABLED`, `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` | conforme o provedor de IA escolhido (ver README) |
 
+## Ligando a IA em produção (passo a passo)
+
+Sem `AI_API_KEY` a API **não chama nenhum provedor**: notas, insights, crítica e saúde de estratégias caem nas regras
+locais (marcadas "Regras") e o chat e o rascunho de estratégia respondem 503. A chave fica só no Render.
+
+1. Criar a chave grátis do Gemini em <https://aistudio.google.com/apikey> (os limites do plano gratuito aparecem em
+   <https://aistudio.google.com/rate-limit>; valem por projeto, não por chave).
+2. No Render: serviço `app-guia` → **Environment** → definir `AI_ENABLED=true`, `AI_PROVIDER=gemini`,
+   `AI_API_KEY=<a chave>` e, opcionalmente, `AI_MODEL=gemini-3.6-flash` (já é o padrão; `gemini-3.8-flash` também
+   existe) → salvar. O Render reinicia o serviço sozinho.
+3. Esperar o serviço voltar e conferir `/actuator/health` (`UP`).
+4. No app, entrar como **Gestor** → **Direção › Assistente**: o selo verde "IA conectada · gemini (...)" confirma. Como
+   **Liderança**, **Estratégia › Nova** → "Gerar rascunho" também só funciona com a IA ligada.
+5. Se o selo disser "IA não configurada no servidor", a chave não chegou (variável com nome errado, vazia ou serviço
+   não reiniciado). Se o selo for verde mas as notas aparecerem como "Regras", o provedor está recusando as chamadas
+   (chave inválida, modelo inexistente ou cota esgotada): veja os logs do Render (`IA indisponível ...`).
+
+Nunca coloque a chave no repositório, em issue/PR ou em conversa: só no painel do Render (e, para testes locais, num
+`.env` que o `.gitignore` já ignora).
+
 ## Problemas reais já encontrados e resolvidos (para quem repetir esse processo)
 
 1. **MongoDB Atlas só libera por padrão o IP de quem criou o cluster** na "IP Access List".
