@@ -14,7 +14,8 @@ public record AppProperties(
         @Valid @NotNull Jwt jwt,
         @Valid @NotNull Security security,
         @Valid @NotNull Seed seed,
-        @Valid @NotNull Ai ai) {
+        @Valid @NotNull Ai ai,
+        @Valid @NotNull RateLimit rateLimit) {
 
     public record Jwt(@NotBlank String secret, @Min(1) long expirationMinutes, @NotBlank String issuer) {
     }
@@ -37,5 +38,9 @@ public record AppProperties(
         public boolean configurada() {
             return enabled && apiKey != null && !apiKey.isBlank();
         }
+    }
+
+    /** Limites de requisições por minuto, por chave (e-mail no login, id de usuário na IA). */
+    public record RateLimit(@Min(1) int loginPorMinuto, @Min(1) int iaPorMinuto) {
     }
 }

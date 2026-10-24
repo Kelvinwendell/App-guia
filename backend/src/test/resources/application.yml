@@ -48,3 +48,8 @@ app:
     model: ${AI_MODEL:gemini-3.6-flash}
     base-url: ${AI_BASE_URL:}
     timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+  rate-limit:
+    # Alto o suficiente para nao interferir em testes que nao sao sobre rate limiting;
+    # RateLimitingIT sobrescreve com valores baixos via @TestPropertySource.
+    login-por-minuto: ${RATE_LIMIT_LOGIN_POR_MINUTO:1000}
+    ia-por-minuto: ${RATE_LIMIT_IA_POR_MINUTO:1000}

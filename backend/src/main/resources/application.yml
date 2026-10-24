@@ -50,3 +50,7 @@ app:
     # vazio = URL padrao do provedor
     base-url: ${AI_BASE_URL:}
     timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+  rate-limit:
+    # Protege login (forca bruta) e os endpoints de IA (custo por chamada a um provedor pago).
+    login-por-minuto: ${RATE_LIMIT_LOGIN_POR_MINUTO:10}
+    ia-por-minuto: ${RATE_LIMIT_IA_POR_MINUTO:10}

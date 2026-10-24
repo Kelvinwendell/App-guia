@@ -53,6 +53,7 @@ public final class Dados {
                 new AppProperties.Jwt(SEGREDO_JWT, 60, "aguia-inova-api"),
                 new AppProperties.Security(permitirEscolhaDePerfil),
                 new AppProperties.Seed(false),
-                new AppProperties.Ai(iaHabilitada, provedorIa, chaveIa, "modelo-teste", "", 5));
+                new AppProperties.Ai(iaHabilitada, provedorIa, chaveIa, "modelo-teste", "", 5),
+                new AppProperties.RateLimit(1000, 1000));
     }
 }
