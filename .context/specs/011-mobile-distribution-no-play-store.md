@@ -18,8 +18,7 @@ estudantil isso é opcional e evitável.
 - [ ] Gerar uma keystore própria (`keytool -genkeypair ...`) e **guardar em local seguro, fora
       do repositório** (nunca commitar a keystore nem a senha).
 - [ ] Gerar o APK assinado em release:
-      `cd mobile && ./gradlew assembleRelease -PapiBaseUrl=http://<ip-publico-da-vm-oracle>:8080/`
-      (ver SPEC-010)
+      `cd mobile && ./gradlew assembleRelease -PapiBaseUrl=https://<url-do-render>/`
 - [ ] Criar um Release no GitHub (`Releases` → `Draft a new release`) e subir o APK assinado
       como anexo — distribuição gratuita, com histórico de versão.
 - [ ] (Alternativa gratuita com atualização mais fácil: Firebase App Distribution — grátis,
