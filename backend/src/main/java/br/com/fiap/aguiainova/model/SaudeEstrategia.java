@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.fiap.aguiainova.model.enums.NivelSaude;
+import br.com.fiap.aguiainova.util.Numeros;
 
 /**
  * Saude de uma estrategia vigente, apurada por regras (nunca pela IA, que so explica o resultado). Fonte unica das
@@ -57,8 +58,7 @@ public record SaudeEstrategia(NivelSaude nivel, List<String> motivos, String pro
             motivos.add("%d ideia(s) aprovada(s) ainda sem projeto.".formatted(i.aprovadasSemProjeto()));
         }
         if (s.roiNegativo()) {
-            motivos.add("ROI de %s%% mesmo com projeto(s) já concluído(s)."
-                    .formatted(i.roiPercentual().stripTrailingZeros().toPlainString()));
+            motivos.add("ROI de %s mesmo com projeto(s) já concluído(s).".formatted(Numeros.percentual(i.roiPercentual())));
         }
         if (s.parada()) {
             motivos.add(s.semVinculos()

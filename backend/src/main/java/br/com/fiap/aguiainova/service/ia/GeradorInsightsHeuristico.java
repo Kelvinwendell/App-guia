@@ -13,6 +13,7 @@ import br.com.fiap.aguiainova.dto.response.DesempenhoProjetoResponse;
 import br.com.fiap.aguiainova.dto.response.ResumoDashboardResponse;
 import br.com.fiap.aguiainova.dto.response.ResumoIdeiasResponse;
 import br.com.fiap.aguiainova.model.enums.StatusProjeto;
+import br.com.fiap.aguiainova.util.Numeros;
 import org.springframework.stereotype.Component;
 
 /** Leitura do dashboard por regras simples: plano de contingencia quando a IA generativa nao esta disponivel. */
@@ -117,6 +118,6 @@ public class GeradorInsightsHeuristico implements GeradorDeInsights {
     }
 
     private static String percentual(BigDecimal valor) {
-        return valor == null ? "n/d" : valor.stripTrailingZeros().toPlainString() + "%";
+        return Numeros.percentual(valor);
     }
 }
