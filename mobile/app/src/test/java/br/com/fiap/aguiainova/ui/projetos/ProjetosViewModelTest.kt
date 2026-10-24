@@ -9,10 +9,12 @@ import br.com.fiap.aguiainova.domain.model.DadosIdeia
 import br.com.fiap.aguiainova.domain.model.DadosProjeto
 import br.com.fiap.aguiainova.domain.model.DadosResultado
 import br.com.fiap.aguiainova.domain.model.Estrategia
+import br.com.fiap.aguiainova.domain.model.EstrategiaHistorico
 import br.com.fiap.aguiainova.domain.model.EtapaProjeto
 import br.com.fiap.aguiainova.domain.model.Ideia
 import br.com.fiap.aguiainova.domain.model.Prioridade
 import br.com.fiap.aguiainova.domain.model.Projeto
+import br.com.fiap.aguiainova.domain.model.SaudeEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusEstrategia
 import br.com.fiap.aguiainova.domain.model.StatusIdeia
 import br.com.fiap.aguiainova.domain.model.StatusProjeto
@@ -185,6 +187,12 @@ class ProjetosViewModelTest {
         override suspend fun atualizar(id: String, dados: DadosEstrategia) = naoUsado<Estrategia>()
 
         override suspend fun remover(id: String) = naoUsado<Unit>()
+
+        override suspend fun historico(categoria: String?, campanha: String?) = naoUsado<List<EstrategiaHistorico>>()
+
+        override suspend fun saude() = naoUsado<List<SaudeEstrategia>>()
+
+        override suspend fun saudeDe(id: String) = naoUsado<SaudeEstrategia>()
     }
 
     private class FakeIdeias : IdeiaRepository {
