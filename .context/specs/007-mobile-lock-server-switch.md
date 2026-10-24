@@ -1,7 +1,7 @@
 # SPEC-007: Travar a troca de servidor fora de build de debug
 
 ## Status
-PENDING
+DONE (código) / NÃO VERIFICADO (sem execução de teste — ver Resultado)
 
 ## Prioridade
 CRÍTICO
@@ -39,5 +39,22 @@ backend falso e capturar credenciais pela tela de login legítima do próprio ap
    em vez de `DONE`, até que alguém com ambiente Android confirme.
 
 ## Resultado
-(preencher ao final do ciclo TDD, deixando explícito que a REGRESSÃO precisa ser confirmada
-fora deste sandbox)
+Implementado: `ConfiguracaoServidor.editavel(): Boolean` (novo método na interface);
+`ConfiguracaoServidorPrefs` ganhou parâmetro de construtor `editavel: Boolean = BuildConfig.DEBUG`
+(default preserva compatibilidade com `AppContainer`, que não precisou mudar).
+`AuthViewModel.servidorEditavel` expõe isso; `LoginScreen.kt` envolve o botão "Servidor: ..." e
+o diálogo de edição em `if (vm.servidorEditavel)`.
+
+Teste escrito seguindo o precedente já usado no projeto (`CapturasDeTelaTest` usa
+`@RunWith(RobolectricTestRunner::class)` + `ApplicationProvider.getApplicationContext()` para
+instanciar classes que dependem de `Context` em JVM pura): `ConfiguracaoServidorEditavelTest`,
+2 casos (constrói com `editavel=true`/`false` explícito, sem depender de `BuildConfig.DEBUG`
+na asserção, para o teste não depender de qual variante foi compilada).
+
+**Não consegui confirmar RED nem GREEN nesta sessão**: tentei de novo `./gradlew
+compileDebugKotlin` depois do Docker ter sido religado (rede mudou de porta) e o Android
+Gradle Plugin continua não resolvendo neste sandbox (mesmo erro de antes, ver
+`architecture.md`). Revisei o diff manualmente por sintaxe/consistência (chaves balanceadas,
+import novo usado, assinatura do construtor compatível com a chamada existente em
+`AppContainer`), mas isso não substitui compilar de verdade. Precisa ser confirmado em CI
+(quando o job mobile existir) ou localmente por quem tiver Android SDK.

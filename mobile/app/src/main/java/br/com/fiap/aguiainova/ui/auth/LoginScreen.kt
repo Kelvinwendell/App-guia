@@ -54,13 +54,18 @@ fun LoginScreen(aoEntrar: (Perfil) -> Unit, aoCriarConta: () -> Unit) {
             TextButton(onClick = aoCriarConta, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("Criar conta")
             }
-            TextButton(onClick = { editandoServidor = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("Servidor: $url")
+            if (vm.servidorEditavel) {
+                TextButton(
+                    onClick = { editandoServidor = true },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Servidor: $url")
+                }
             }
         }
     }
 
-    if (editandoServidor) {
+    if (vm.servidorEditavel && editandoServidor) {
         DialogoServidor(
             urlAtual = url,
             aoSalvar = { if (vm.salvarServidor(it)) editandoServidor = false },
