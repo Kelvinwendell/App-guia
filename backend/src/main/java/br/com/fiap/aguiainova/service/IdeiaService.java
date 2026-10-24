@@ -51,18 +51,10 @@ public class IdeiaService {
         if (usuario.eOperador()) {
             consulta.addCriteria(Criteria.where("autor.usuarioId").is(usuario.id()));
         }
-        if (status != null) {
-            consulta.addCriteria(Criteria.where("status").is(status));
-        }
-        if (prioridade != null) {
-            consulta.addCriteria(Criteria.where("prioridade").is(prioridade));
-        }
-        if (Consultas.informado(categoria)) {
-            consulta.addCriteria(Consultas.igualIgnorandoCaixa("categoria", categoria));
-        }
-        if (Consultas.informado(estrategiaId)) {
-            consulta.addCriteria(Criteria.where("estrategiaId").is(estrategiaId));
-        }
+        Consultas.seIgual(consulta, "status", status);
+        Consultas.seIgual(consulta, "prioridade", prioridade);
+        Consultas.seInformadoIgnorandoCaixa(consulta, "categoria", categoria);
+        Consultas.seInformado(consulta, "estrategiaId", estrategiaId);
         return paraResponses(mongo.find(consulta, Ideia.class), usuario);
     }
 

@@ -144,12 +144,8 @@ public class DashboardService {
 
     private List<Projeto> projetosDoEscopo(String estrategiaId, String projetoId) {
         Query consulta = new Query();
-        if (Consultas.informado(estrategiaId)) {
-            consulta.addCriteria(Criteria.where("estrategiaId").is(estrategiaId));
-        }
-        if (Consultas.informado(projetoId)) {
-            consulta.addCriteria(Criteria.where("id").is(projetoId));
-        }
+        Consultas.seInformado(consulta, "estrategiaId", estrategiaId);
+        Consultas.seInformado(consulta, "id", projetoId);
         return mongo.find(consulta, Projeto.class);
     }
 

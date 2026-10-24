@@ -12,7 +12,7 @@ Atualizado a cada ciclo do loop de TDD. Ordem = prioridade de execução.
 | [004](specs/004-dashboard-pagination.md) | Dashboard sem findAll() irrestrito | CRÍTICO | DONE (limite documentado) |
 | [006](specs/006-ci-pipeline.md) | Pipeline de CI (GitHub Actions) | CRÍTICO | DONE |
 | [005](specs/005-missing-indexes.md) | Índices em status/etapa/criadoEm | IMPORTANTE | DONE |
-| [012](specs/012-query-builder-dedup.md) | Helper comum de filtro dinâmico | BOM TER | PENDING |
+| [012](specs/012-query-builder-dedup.md) | Helper comum de filtro dinâmico | BOM TER | DONE |
 
 ## Autônomas no código, mas não verificáveis neste sandbox (sem Android SDK)
 

@@ -56,15 +56,9 @@ public class EstrategiaService {
 
     public List<EstrategiaResponse> listar(StatusEstrategia status, String categoria, String campanha) {
         Query consulta = new Query().with(Sort.by(Sort.Direction.DESC, "criadoEm"));
-        if (status != null) {
-            consulta.addCriteria(Criteria.where("status").is(status));
-        }
-        if (Consultas.informado(categoria)) {
-            consulta.addCriteria(Consultas.igualIgnorandoCaixa("categoria", categoria));
-        }
-        if (Consultas.informado(campanha)) {
-            consulta.addCriteria(Consultas.igualIgnorandoCaixa("campanha", campanha));
-        }
+        Consultas.seIgual(consulta, "status", status);
+        Consultas.seInformadoIgnorandoCaixa(consulta, "categoria", categoria);
+        Consultas.seInformadoIgnorandoCaixa(consulta, "campanha", campanha);
         return mongo.find(consulta, Estrategia.class).stream().map(mapper::paraResponse).toList();
     }
 
@@ -99,15 +93,9 @@ public class EstrategiaService {
     public List<EstrategiaHistoricoResponse> historico(String estrategiaId, String categoria, String campanha,
             LocalDate de, LocalDate ate) {
         Query consulta = new Query().with(Sort.by(Sort.Direction.DESC, "data"));
-        if (Consultas.informado(estrategiaId)) {
-            consulta.addCriteria(Criteria.where("estrategiaId").is(estrategiaId));
-        }
-        if (Consultas.informado(categoria)) {
-            consulta.addCriteria(Consultas.igualIgnorandoCaixa("categoria", categoria));
-        }
-        if (Consultas.informado(campanha)) {
-            consulta.addCriteria(Consultas.igualIgnorandoCaixa("campanha", campanha));
-        }
+        Consultas.seInformado(consulta, "estrategiaId", estrategiaId);
+        Consultas.seInformadoIgnorandoCaixa(consulta, "categoria", categoria);
+        Consultas.seInformadoIgnorandoCaixa(consulta, "campanha", campanha);
         if (de != null || ate != null) {
             consulta.addCriteria(periodo(de, ate));
         }

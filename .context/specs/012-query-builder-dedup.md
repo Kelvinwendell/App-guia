@@ -1,7 +1,7 @@
 # SPEC-012: Extrair helper comum para filtros dinâmicos de consulta
 
 ## Status
-PENDING
+DONE
 
 ## Prioridade
 BOM TER
@@ -27,4 +27,20 @@ O bloco "se filtro != null, addCriteria(...)" se repete, quase idêntico, em
 3. **REGRESSÃO**: suíte completa verde após cada substituição.
 
 ## Resultado
-(preencher ao final do ciclo, com números reais de execução)
+`util/Consultas.java` ganhou 3 helpers: `seIgual` (enum/objeto), `seInformado` (String) e
+`seInformadoIgnorandoCaixa`. Substituídos, um serviço por vez com teste de integração do
+respectivo controller entre cada troca (sem teste novo — a própria IT existente é a prova,
+como a spec previu): `IdeiaService.listar`, `ProjetoService.listar`, `EstrategiaService`
+(`listar` e `historico`), `DashboardService.projetosDoEscopo`. `DashboardService.resumoIdeias`
+ficou de fora de propósito: é um `? :` (filtro OU busca limitada), formato diferente do
+"adicionar critério opcional", forçar no helper reduziria clareza em vez de aumentar.
+
+Efeito colateral de limpeza: `ProjetoService` não usava mais `Criteria` diretamente depois da
+troca — import removido.
+
+Interrupção no meio do caminho (não é bug meu): o Docker deste sandbox caiu entre uma
+mensagem e outra da conversa (religou com uma porta de proxy diferente, sinal de reinício do
+ambiente) e o primeiro teste de regressão falhou por "Could not find a valid Docker
+environment" - não por causa do refactor. Resolvido religando o daemon antes de seguir.
+
+Suíte completa: 272/272 verdes.
