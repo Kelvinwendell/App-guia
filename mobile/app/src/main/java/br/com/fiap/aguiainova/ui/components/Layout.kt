@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.navigation.NavController
@@ -196,8 +197,12 @@ fun BarraInferior(perfil: Perfil, navController: NavController) {
             NavigationBarItem(
                 selected = rotaAtual == item.rota,
                 onClick = { navController.irParaAba(item.rota, perfil) },
-                icon = { Icon(item.icone, contentDescription = item.rotulo) },
-                label = { Text(item.rotulo, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                // O rotulo ja nomeia o item para o leitor de tela; repetir no icone faz o TalkBack ler duas vezes.
+                icon = { Icon(item.icone, contentDescription = null) },
+                // Com cinco abas e fonte ampliada o rotulo nao cabe: reticencias em vez de corte seco ("Estratég").
+                label = {
+                    Text(item.rotulo, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = AguiaCores.Primaria,
                     selectedTextColor = AguiaCores.Primaria,
