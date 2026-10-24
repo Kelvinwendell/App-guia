@@ -2,15 +2,19 @@ package br.com.fiap.aguiainova.ui.ideias
 
 import br.com.fiap.aguiainova.core.network.Resultado
 import br.com.fiap.aguiainova.core.network.TipoErro
+import br.com.fiap.aguiainova.domain.model.AnaliseEstrategia
 import br.com.fiap.aguiainova.domain.model.AvaliacaoIdeia
 import br.com.fiap.aguiainova.domain.model.AvaliacaoIdeiaIa
+import br.com.fiap.aguiainova.domain.model.DadosEstrategia
 import br.com.fiap.aguiainova.domain.model.DadosIdeia
 import br.com.fiap.aguiainova.domain.model.Ideia
 import br.com.fiap.aguiainova.domain.model.InsightsIa
+import br.com.fiap.aguiainova.domain.model.LeituraSaude
 import br.com.fiap.aguiainova.domain.model.MensagemChat
 import br.com.fiap.aguiainova.domain.model.Perfil
 import br.com.fiap.aguiainova.domain.model.Prioridade
 import br.com.fiap.aguiainova.domain.model.RankingIa
+import br.com.fiap.aguiainova.domain.model.RascunhoEstrategia
 import br.com.fiap.aguiainova.domain.model.RespostaChat
 import br.com.fiap.aguiainova.domain.model.StatusIa
 import br.com.fiap.aguiainova.domain.model.StatusIdeia
@@ -213,6 +217,13 @@ class IdeiasViewModelTest {
         override suspend fun conversar(mensagem: String, historico: List<MensagemChat>) = naoUsado<RespostaChat>()
 
         override suspend fun insights() = naoUsado<InsightsIa>()
+
+        override suspend fun rascunharEstrategia(objetivo: String) = naoUsado<RascunhoEstrategia>()
+
+        override suspend fun analisarEstrategia(estrategiaId: String?, dados: DadosEstrategia) =
+            naoUsado<AnaliseEstrategia>()
+
+        override suspend fun lerSaude(estrategiaId: String) = naoUsado<LeituraSaude>()
     }
 
     private companion object {

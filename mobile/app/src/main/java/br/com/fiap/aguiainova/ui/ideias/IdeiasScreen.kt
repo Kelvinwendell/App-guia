@@ -47,6 +47,7 @@ import br.com.fiap.aguiainova.domain.model.StatusIdeia
 import br.com.fiap.aguiainova.navigation.Rotas
 import br.com.fiap.aguiainova.ui.common.AoRetomar
 import br.com.fiap.aguiainova.ui.common.viewModelDoApp
+import br.com.fiap.aguiainova.ui.components.AbasDaTela
 import br.com.fiap.aguiainova.ui.components.CampoTexto
 import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
@@ -74,8 +75,8 @@ fun IdeiasScreen(perfil: Perfil, navController: NavController) {
     val gestor = perfil == Perfil.GESTOR
 
     TelaBase(
-        titulo = if (gestor) "Ideias" else "Minhas Ideias",
-        subtitulo = if (gestor) "Analise, priorize e aprove as ideias." else "Acompanhe o status das suas ideias.",
+        titulo = "Ideias",
+        subtitulo = if (gestor) "Analise, priorize e aprove as ideias." else "Acompanhe as suas e veja o que a empresa já aprovou.",
         navController = navController,
         perfil = perfil,
         aviso = aviso,
@@ -99,7 +100,7 @@ fun IdeiasScreen(perfil: Perfil, navController: NavController) {
             if (gestor) {
                 FiltrosDoGestor(filtro, ordenarPorIa, vm::filtrarPor, vm::ordenarPorNotaDaIa)
             } else {
-                FiltrosDoOperador(aprovadas, vm::mostrarAprovadasDaEmpresa)
+                AbasDaTela(ABAS_DO_OPERADOR, if (aprovadas) 1 else 0, { vm.mostrarAprovadasDaEmpresa(it == 1) })
             }
             ConteudoDoEstado(estado, aoTentarNovamente = vm::carregar, modifier = Modifier.weight(1f)) { lista ->
                 val exibidas = if (ordenarPorIa) lista.sortedByDescending { it.avaliacaoIa?.score ?: -1 } else lista
@@ -152,13 +153,8 @@ fun IdeiasScreen(perfil: Perfil, navController: NavController) {
     }
 }
 
-@Composable
-private fun FiltrosDoOperador(somenteAprovadas: Boolean, aoAlternar: (Boolean) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
-        FilterChip(selected = !somenteAprovadas, onClick = { aoAlternar(false) }, label = { Text("Minhas ideias") })
-        FilterChip(selected = somenteAprovadas, onClick = { aoAlternar(true) }, label = { Text("Aprovadas da empresa") })
-    }
-}
+/** O operador alterna entre o que ele enviou e o que a empresa ja aprovou: duas partes da tela, entao sao abas. */
+private val ABAS_DO_OPERADOR = listOf("Minhas ideias", "Aprovadas da empresa")
 
 @Composable
 private fun FiltrosDoGestor(
@@ -247,6 +243,11 @@ private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
                 Selo("Sugere: ${avaliacao.prioridadeSugerida.rotulo}", avaliacao.prioridadeSugerida.cor())
                 Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", AguiaCores.TextoSecundario)
             }
+            Text(
+                "Alinhamento com a estratégia: ${avaliacao.alinhamentoEstrategico}/100",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(avaliacao.justificativa, style = MaterialTheme.typography.bodySmall)
             if (avaliacao.pontosFortes.isNotEmpty()) {
                 Text("Pontos fortes: " + avaliacao.pontosFortes.joinToString("; "), style = MaterialTheme.typography.bodySmall, color = AguiaCores.Sucesso)

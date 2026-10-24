@@ -9,10 +9,14 @@ import br.com.fiap.aguiainova.dto.response.ResumoIdeiasResponse;
 import br.com.fiap.aguiainova.integration.ai.LlmIndisponivelException;
 import br.com.fiap.aguiainova.integration.ai.LlmNaoConfiguradoException;
 import br.com.fiap.aguiainova.model.AvaliacaoIa;
+import br.com.fiap.aguiainova.model.DadosEstrategia;
+import br.com.fiap.aguiainova.model.DiagnosticoEstrategia;
 import br.com.fiap.aguiainova.model.Estrategia;
 import br.com.fiap.aguiainova.model.Ideia;
+import br.com.fiap.aguiainova.model.SaudeEstrategia;
 import br.com.fiap.aguiainova.model.enums.Prioridade;
 import br.com.fiap.aguiainova.support.Dados;
+import br.com.fiap.aguiainova.support.IndicadoresBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,6 +48,14 @@ class ContingenciaTest {
     private GeradorInsightsLlm geradorLlm;
     @Mock
     private GeradorInsightsHeuristico geradorHeuristico;
+    @Mock
+    private AnalisadorEstrategiasLlm analisadorLlm;
+    @Mock
+    private AnalisadorEstrategiasHeuristico analisadorHeuristico;
+    @Mock
+    private LeitorSaudeLlm leitorLlm;
+    @Mock
+    private LeitorSaudeHeuristico leitorHeuristico;
 
     private final Ideia a = Dados.ideia("a", "A", "Descrição A", "Geral", null);
     private final Ideia b = Dados.ideia("b", "B", "Descrição B", "Geral", null);
@@ -115,6 +127,46 @@ class ContingenciaTest {
         doThrow(new LlmNaoConfiguradoException()).when(geradorLlm).gerar(indicadores);
         assertThat(contingencia.gerar(indicadores)).isSameAs(dasRegras);
         verify(geradorHeuristico, times(2)).gerar(eq(indicadores));
+    }
+
+    @Test
+    void analiseDeEstrategiaUsaOModeloEDepoisAsRegras() {
+        var dados = new DadosEstrategia("Título da estratégia", "Descrição", "Geral", null, null);
+        var doModelo = new AnaliseGerada(80, "modelo", List.of(), List.of(), List.of(), "GEMINI");
+        var dasRegras = new AnaliseGerada(60, "regras", List.of(), List.of(), List.of(), FonteIa.HEURISTICA);
+        when(analisadorHeuristico.analisar(dados, vigentes)).thenReturn(dasRegras);
+        var contingencia = new AnalisadorEstrategiasComContingencia(analisadorLlm, analisadorHeuristico);
+
+        when(analisadorLlm.analisar(dados, vigentes)).thenReturn(doModelo);
+        assertThat(contingencia.analisar(dados, vigentes)).isSameAs(doModelo);
+        verify(analisadorHeuristico, never()).analisar(any(), anyList());
+
+        doThrow(new LlmIndisponivelException("timeout")).when(analisadorLlm).analisar(dados, vigentes);
+        assertThat(contingencia.analisar(dados, vigentes)).isSameAs(dasRegras);
+
+        doThrow(new LlmNaoConfiguradoException()).when(analisadorLlm).analisar(dados, vigentes);
+        assertThat(contingencia.analisar(dados, vigentes)).isSameAs(dasRegras);
+    }
+
+    @Test
+    void leituraDaSaudeUsaOModeloEDepoisAsRegras() {
+        var indicadores = IndicadoresBuilder.saudavel().build();
+        var diagnostico = new DiagnosticoEstrategia(Dados.estrategia("e-1", "T", "D", "C", null), indicadores,
+                SaudeEstrategia.avaliar(indicadores, IndicadoresBuilder.HOJE));
+        var doModelo = new LeituraGerada("modelo", List.of("a"), "GEMINI");
+        var dasRegras = new LeituraGerada("regras", List.of("b"), FonteIa.HEURISTICA);
+        when(leitorHeuristico.ler(diagnostico)).thenReturn(dasRegras);
+        var contingencia = new LeitorSaudeComContingencia(leitorLlm, leitorHeuristico);
+
+        when(leitorLlm.ler(diagnostico)).thenReturn(doModelo);
+        assertThat(contingencia.ler(diagnostico)).isSameAs(doModelo);
+        verify(leitorHeuristico, never()).ler(any());
+
+        doThrow(new LlmIndisponivelException("HTTP 429")).when(leitorLlm).ler(diagnostico);
+        assertThat(contingencia.ler(diagnostico)).isSameAs(dasRegras);
+
+        doThrow(new LlmNaoConfiguradoException()).when(leitorLlm).ler(diagnostico);
+        assertThat(contingencia.ler(diagnostico)).isSameAs(dasRegras);
     }
 
     private static ResumoDashboardResponse resumoVazio() {

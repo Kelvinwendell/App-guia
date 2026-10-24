@@ -22,7 +22,12 @@ data class DadosEstrategia(
     val descricao: String,
     val categoria: String,
     val campanha: String? = null,
-    val status: StatusEstrategia? = null
+    val status: StatusEstrategia? = null,
+    val metas: List<String> = emptyList(),
+    /** yyyy-MM-dd */
+    val inicio: String? = null,
+    /** yyyy-MM-dd */
+    val fim: String? = null
 )
 
 data class DadosIdeia(
@@ -73,3 +78,9 @@ data class PedidoChat(
     val mensagem: String,
     val historico: List<MensagemChat> = emptyList()
 )
+
+/** Objetivo escrito pela lideranca; a IA devolve um rascunho de estrategia. */
+data class PedidoRascunhoEstrategia(val objetivo: String)
+
+/** Estrategia a criticar antes de salvar; [estrategiaId] evita compara-la consigo mesma ao editar. */
+data class PedidoAnaliseEstrategia(val estrategiaId: String?, val estrategia: DadosEstrategia)

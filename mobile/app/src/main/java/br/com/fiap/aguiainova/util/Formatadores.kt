@@ -45,6 +45,14 @@ object Formatadores {
         }.getOrDefault(data(iso))
     }
 
+    /** Periodo de vigencia em texto ("01/01/2026 a 31/12/2026"), ou nulo quando nao foi definido. */
+    fun periodo(inicio: String?, fim: String?): String? = when {
+        inicio != null && fim != null -> "${data(inicio)} a ${data(fim)}"
+        inicio != null -> "desde ${data(inicio)}"
+        fim != null -> "até ${data(fim)}"
+        else -> null
+    }
+
     /** yyyy-MM -> "mar/26". */
     fun mes(anoMes: String): String =
         runCatching { YearMonth.parse(anoMes).format(mesAbreviado) }.getOrDefault(anoMes)

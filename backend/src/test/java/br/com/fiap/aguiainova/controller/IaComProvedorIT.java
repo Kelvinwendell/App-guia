@@ -1,5 +1,6 @@
 package br.com.fiap.aguiainova.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import br.com.fiap.aguiainova.integration.ai.PedidoLlm;
 import br.com.fiap.aguiainova.model.Usuario;
 import br.com.fiap.aguiainova.model.enums.PapelMensagem;
 import br.com.fiap.aguiainova.model.enums.Perfil;
+import br.com.fiap.aguiainova.model.enums.StatusProjeto;
 import br.com.fiap.aguiainova.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -204,5 +207,137 @@ class IaComProvedorIT extends AbstractIntegrationTest {
         post(gestor, "/api/ia/chat", Map.of("mensagem", "Oi"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.detail").value(containsString("não está configurado")));
+    }
+
+    private String estrategiaVigente() {
+        return cenarios.estrategia(logado(lideranca), "Fábrica 4.0", "Tecnologia", "C1");
+    }
+
+    @Test
+    void rascunhoDeEstrategiaUsaOModeloEDevolveCamposValidados() throws Exception {
+        estrategiaVigente();
+        when(llm.gerar(any())).thenReturn("Segue o rascunho:\n```json\n{\"titulo\":\"Cadeia de suprimentos resiliente\","
+                + "\"descricao\":\"Diversificar fornecedores.\",\"categoria\":\"Operações\",\"campanha\":\"\","
+                + "\"metas\":[\"Ter 2 fornecedores por insumo crítico até dez/2026\"],\"inicio\":\"2026-11-01\","
+                + "\"fim\":\"2027-06-30\"}\n```");
+
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Depender menos de um fornecedor"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titulo").value("Cadeia de suprimentos resiliente"))
+                .andExpect(jsonPath("$.categoria").value("Operações"))
+                .andExpect(jsonPath("$.campanha").value(nullValue()))
+                .andExpect(jsonPath("$.metas[0]").value(containsString("2 fornecedores")))
+                .andExpect(jsonPath("$.inicio").value("2026-11-01"))
+                .andExpect(jsonPath("$.fim").value("2027-06-30"))
+                .andExpect(jsonPath("$.fonte").value("GEMINI"));
+
+        PedidoLlm pedido = pedidoEnviado();
+        assertThat(pedido.respostaJson()).isTrue();
+        assertThat(pedido.mensagens().get(0).texto()).contains("Fábrica 4.0").contains("Data de hoje:")
+                .contains("<objetivo>\nDepender menos de um fornecedor\n</objetivo>");
+    }
+
+    @Test
+    void rascunhoResponde503SeOModeloFalhaNaoEstaConfiguradoOuRespondeLixo() throws Exception {
+        doThrow(new LlmIndisponivelException("HTTP 500")).when(llm).gerar(any());
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Crescer"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(containsString("indisponível no momento")));
+
+        doThrow(new LlmNaoConfiguradoException()).when(llm).gerar(any());
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Crescer"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(containsString("não está configurada")));
+
+        doReturn("Não consegui escrever isso.").when(llm).gerar(any());
+        post(lideranca, "/api/ia/estrategias/rascunho", Map.of("objetivo", "Crescer"))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void analiseUsaOModeloEIgnoraSobreposicoesComIdsInventados() throws Exception {
+        String existente = estrategiaVigente();
+        when(llm.gerar(any())).thenReturn("{\"nota\":72,\"resumo\":\"Boa base\",\"pontosFortes\":[\"Clara\"],"
+                + "\"melhorias\":[\"Metas com prazo\"],\"sobreposicoes\":[\"" + existente + "\",\"id-inventado\"]}");
+
+        post(lideranca, "/api/ia/estrategias/analise", Map.of("estrategia", Map.of("titulo", "Fábrica conectada",
+                "descricao", "Conectar as máquinas", "categoria", "Tecnologia")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fonte").value("GEMINI"))
+                .andExpect(jsonPath("$.nota").value(72))
+                .andExpect(jsonPath("$.resumo").value("Boa base"))
+                .andExpect(jsonPath("$.sobreposicoes", hasSize(1)))
+                .andExpect(jsonPath("$.sobreposicoes[0].estrategiaId").value(existente))
+                .andExpect(jsonPath("$.sobreposicoes[0].titulo").value("Fábrica 4.0"));
+        assertThat(pedidoEnviado().mensagens().get(0).texto()).contains("id=\"" + existente + "\"");
+    }
+
+    @Test
+    void analiseNaoEnviaAoModeloAPropriaEstrategiaQueEstaSendoEditada() throws Exception {
+        String existente = estrategiaVigente();
+        when(llm.gerar(any())).thenReturn("{\"nota\":60,\"resumo\":\"ok\"}");
+
+        post(lideranca, "/api/ia/estrategias/analise", Map.of("estrategiaId", existente, "estrategia", Map.of(
+                "titulo", "Fábrica 4.0", "descricao", "Descrição", "categoria", "Tecnologia")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sobreposicoes", hasSize(0)));
+        assertThat(pedidoEnviado().mensagens().get(0).texto()).doesNotContain("id=\"" + existente + "\"");
+    }
+
+    @Test
+    void analiseCaiNasRegrasSeOModeloFalhaOuRespondeSemNota() throws Exception {
+        Map<String, Object> corpo = Map.of("estrategia", Map.of("titulo", "Fábrica conectada", "descricao", "d",
+                "categoria", "Tecnologia"));
+
+        doThrow(new LlmIndisponivelException("timeout")).when(llm).gerar(any());
+        post(lideranca, "/api/ia/estrategias/analise", corpo)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.fonte").value("HEURISTICA"));
+
+        doReturn("{\"resumo\":\"sem nota\"}").when(llm).gerar(any());
+        post(lideranca, "/api/ia/estrategias/analise", corpo)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.fonte").value("HEURISTICA"));
+    }
+
+    @Test
+    void leituraDaSaudeUsaOModeloMasONivelContinuaSendoDasRegras() throws Exception {
+        String estrategia = estrategiaVigente();
+        cenarios.projeto(logado(gestor), "Atrasado", "1000", LocalDate.now().minusDays(60),
+                LocalDate.now().minusDays(1), StatusProjeto.EM_ANDAMENTO, estrategia);
+        when(llm.gerar(any())).thenReturn("{\"leitura\":\"O atraso ameaça o retorno.\","
+                + "\"recomendacoes\":[\"Renegociar o prazo\",\"Reforçar a equipe\"]}");
+
+        post(gestor, "/api/ia/estrategias/" + estrategia + "/saude", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fonte").value("GEMINI"))
+                .andExpect(jsonPath("$.leitura").value("O atraso ameaça o retorno."))
+                .andExpect(jsonPath("$.recomendacoes", hasSize(2)))
+                .andExpect(jsonPath("$.saude.nivel").value("EM_RISCO"));
+
+        assertThat(pedidoEnviado().mensagens().get(0).texto())
+                .contains("Nível de saúde calculado: EM_RISCO").contains("atrasados=1").contains("Fábrica 4.0");
+    }
+
+    @Test
+    void leituraDaSaudeCaiNasRegrasSeOModeloFalha() throws Exception {
+        String estrategia = estrategiaVigente();
+        when(llm.gerar(any())).thenThrow(new LlmIndisponivelException("HTTP 429"));
+
+        post(gestor, "/api/ia/estrategias/" + estrategia + "/saude", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fonte").value("HEURISTICA"))
+                .andExpect(jsonPath("$.saude.nivel").value("EM_DIA"))
+                .andExpect(jsonPath("$.leitura").value(containsString("Fábrica 4.0")));
+    }
+
+    @Test
+    void chatRecebeADescricaoEAsMetasDasEstrategias() throws Exception {
+        post(lideranca, "/api/estrategias", Map.of("titulo", "Fábrica 4.0", "descricao", "Digitalizar a fábrica",
+                "categoria", "Tecnologia", "metas", List.of("Reduzir paradas em 20%"))).andExpect(status().isCreated());
+        when(llm.gerar(any())).thenReturn("ok");
+
+        post(gestor, "/api/ia/chat", Map.of("mensagem", "O que priorizar?")).andExpect(status().isOk());
+
+        assertThat(pedidoEnviado().instrucaoSistema()).contains("descrição: Digitalizar a fábrica")
+                .contains("metas: Reduzir paradas em 20%");
     }
 }

@@ -97,6 +97,10 @@ ConferirStatus "operador nao usa a IA do gestor" (Chamar "POST" "/api/ia/ideias/
 ConferirStatus "todos leem estrategias (operador)" (Chamar "GET" "/api/estrategias" $op) 200
 ConferirStatus "lideranca le o historico de estrategias" (Chamar "GET" "/api/estrategias/historico" $lider) 200
 ConferirStatus "lideranca le projetos" (Chamar "GET" "/api/projetos" $lider) 200
+ConferirStatus "operador nao ve a saude das estrategias" (Chamar "GET" "/api/estrategias/saude" $op) 403
+ConferirStatus "gestor ve a saude das estrategias" (Chamar "GET" "/api/estrategias/saude" $gestor) 200
+ConferirStatus "lideranca ve a saude das estrategias" (Chamar "GET" "/api/estrategias/saude" $lider) 200
+ConferirStatus "gestor nao pede rascunho de estrategia" (Chamar "POST" "/api/ia/estrategias/rascunho" $gestor @{ objetivo = "x" }) 403
 
 Write-Host "`nFluxo: ideia (operador) -> aprovacao (gestor) -> projeto (gestor) -> dashboard (lideranca)"
 $estrategias = Chamar "GET" "/api/estrategias?status=VIGENTE" $op
@@ -144,6 +148,19 @@ $ranking = Chamar "POST" "/api/ia/ideias/avaliar-pendentes" $gestor
 ConferirStatus "gestor prioriza ideias pendentes" $ranking 200
 $insights = Chamar "POST" "/api/ia/dashboard/insights" $lider
 ConferirStatus "lideranca gera insights do dashboard" $insights 200
+
+Write-Host "`nIA nas estrategias (rascunho so com IA; critica e leitura da saude caem nas regras)"
+$rascunho = Chamar "POST" "/api/ia/estrategias/rascunho" $lider @{ objetivo = "Reduzir o desperdicio nas linhas de producao" }
+Conferir "lideranca pede rascunho (200 com IA, 503 sem IA)" ($rascunho.Status -eq 200 -or $rascunho.Status -eq 503) "recebido HTTP $($rascunho.Status)"
+$analise = Chamar "POST" "/api/ia/estrategias/analise" $lider @{ estrategia = @{ titulo = "Reduzir desperdicio de material"; descricao = "Reduzir perdas de material nas linhas de producao."; categoria = "Sustentabilidade" } }
+ConferirStatus "lideranca analisa uma estrategia antes de salvar" $analise 200
+Conferir "analise traz nota entre 0 e 100" ($analise.Dados.nota -ge 0 -and $analise.Dados.nota -le 100) "nota=$($analise.Dados.nota)"
+if ($estrategiaId) {
+    $saude = Chamar "GET" "/api/estrategias/$estrategiaId/saude" $gestor
+    ConferirStatus "gestor ve a saude de uma estrategia" $saude 200
+    Conferir "saude traz nivel e proxima acao" (($saude.Dados.nivel -in @("EM_DIA", "EM_RISCO", "SEM_TRACAO")) -and $saude.Dados.proximaAcao) "nivel=$($saude.Dados.nivel)"
+    ConferirStatus "gestor le a saude com IA ou regras" (Chamar "POST" "/api/ia/estrategias/$estrategiaId/saude" $gestor) 200
+}
 
 Write-Host "`nLimpeza"
 ConferirSucesso "gestor remove o projeto de teste" (Chamar "DELETE" "/api/projetos/$projetoId" $gestor)

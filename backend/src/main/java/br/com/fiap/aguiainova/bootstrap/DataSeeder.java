@@ -3,6 +3,7 @@ package br.com.fiap.aguiainova.bootstrap;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 
 import br.com.fiap.aguiainova.dto.request.AvaliacaoIdeiaRequest;
 import br.com.fiap.aguiainova.dto.request.EstrategiaRequest;
@@ -89,18 +90,26 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private Estrategias criarEstrategias(UsuarioLogado lideranca) {
+        LocalDate hoje = LocalDate.now(clock);
         String zeroDesperdicio = estrategias.criar(new EstrategiaRequest("Redução de desperdício na produção",
                 "Reduzir perdas de material e retrabalho nas linhas de produção.", "Sustentabilidade",
-                "Zero Desperdício 2026", null), lideranca).id();
+                "Zero Desperdício 2026", null,
+                List.of("Reduzir o desperdício de material em 15% até o fim do período",
+                        "Reaproveitar pelo menos 30% das sobras de corte"),
+                hoje.minusMonths(8), hoje.plusMonths(4)), lideranca).id();
         String fabrica40 = estrategias.criar(new EstrategiaRequest("Transformação digital do chão de fábrica",
-                "Digitalizar processos e monitorar máquinas em tempo real.", "Tecnologia", "Fábrica 4.0", null),
-                lideranca).id();
+                "Digitalizar processos e monitorar máquinas em tempo real.", "Tecnologia", "Fábrica 4.0", null,
+                List.of("Monitorar 100% das máquinas da linha 3 em tempo real", "Reduzir paradas não planejadas em 20%"),
+                hoje.minusMonths(6), hoje.plusMonths(6)), lideranca).id();
         estrategias.atualizar(fabrica40, new EstrategiaRequest("Transformação digital do chão de fábrica",
                 "Digitalizar processos, monitorar máquinas em tempo real e usar dados para decidir.", "Tecnologia",
-                "Fábrica 4.0", null), lideranca);
+                "Fábrica 4.0", null,
+                List.of("Monitorar 100% das máquinas da linha 3 em tempo real", "Reduzir paradas não planejadas em 20%"),
+                hoje.minusMonths(6), hoje.plusMonths(6)), lideranca);
         String cuidarSempre = estrategias.criar(new EstrategiaRequest("Segurança e bem-estar do colaborador",
-                "Reduzir acidentes e afastamentos com ergonomia e prevenção.", "Pessoas", "Cuidar Sempre", null),
-                lideranca).id();
+                "Reduzir acidentes e afastamentos com ergonomia e prevenção.", "Pessoas", "Cuidar Sempre", null,
+                List.of("Reduzir os afastamentos por lesão em 25% em 12 meses"),
+                hoje.minusMonths(6), hoje.plusMonths(6)), lideranca).id();
         estrategias.criar(new EstrategiaRequest("Expansão dos canais de venda online",
                 "Ampliar as vendas por canais digitais.", "Comercial", "E-commerce 2025",
                 StatusEstrategia.ENCERRADA), lideranca);

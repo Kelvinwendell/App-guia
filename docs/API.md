@@ -54,11 +54,21 @@ Legenda de perfis: **O** operador · **G** gestor · **L** liderança · **\*** 
 |---|---|---|---|
 | GET | `/api/estrategias?status=&categoria=&campanha=` | \* | Lista (vigentes/encerradas) |
 | GET | `/api/estrategias/{id}` | \* | Detalha |
-| POST | `/api/estrategias` | L | Cria (`titulo, descricao, categoria, campanha?, status?`) |
-| PUT | `/api/estrategias/{id}` | L | Atualiza |
+| POST | `/api/estrategias` | L | Cria (`titulo, descricao, categoria, campanha?, status?, metas?, inicio?, fim?`); `metas` até 8 itens de 200 caracteres, `inicio`/`fim` em `yyyy-MM-dd` com `fim` não anterior a `inicio` (422) |
+| PUT | `/api/estrategias/{id}` | L | Atualiza (substitui o conteúdo: sem `metas`/`inicio`/`fim` na requisição, eles são limpos) |
 | DELETE | `/api/estrategias/{id}` | L | Remove (o histórico permanece) |
 | GET | `/api/estrategias/historico?estrategiaId=&categoria=&campanha=&de=&ate=` | \* | **Histórico**: id, data, categoria, campanha, ação (criada/atualizada/removida) e autor |
 | GET | `/api/estrategias/{id}/historico` | \* | Histórico de uma estratégia |
+| GET | `/api/estrategias/saude` | G, L | **Saúde** de cada estratégia vigente (veja abaixo) |
+| GET | `/api/estrategias/{id}/saude` | G, L | Saúde de uma estratégia vigente (422 se estiver encerrada) |
+
+**Saúde da estratégia** é apurada por **regras** (nunca pela IA) a partir do que está vinculado a ela. Resposta:
+`nivel` (`EM_DIA`, `EM_RISCO` ou `SEM_TRACAO`), `motivos[]`, `proximaAcao` e os números usados (`ideias`,
+`ideiasEmAnalise`, `aprovadasSemProjeto`, `projetos`, `projetosAtrasados`, `investimento`, `retorno`,
+`roiPercentual`, `ultimaAtividade`). `EM_RISCO`: período vencido com a estratégia ainda vigente, projeto atrasado, duas ou
+mais ideias aprovadas sem projeto ou ROI negativo com projeto concluído. `SEM_TRACAO` (se não há risco): nenhum projeto
+em aberto e nenhuma ideia ou mais de 60 dias sem atividade; estratégias com até 14 dias ou que ainda não começaram ganham
+carência. Caso contrário, `EM_DIA`. Reavaliar uma ideia pela IA não conta como atividade.
 
 ### Ideias
 | Método | Rota | Perfil | Descrição |
@@ -99,6 +109,9 @@ Legenda de perfis: **O** operador · **G** gestor · **L** liderança · **\*** 
 | POST | `/api/ia/ideias/avaliar-pendentes` | G | Avalia as ideias em análise e devolve o **ranking** |
 | POST | `/api/ia/chat` | G | Assistente (`mensagem`, `historico?` até 20 turnos; o servidor não guarda estado) |
 | POST | `/api/ia/dashboard/insights` | L | Leitura executiva dos indicadores (IA ou regras) |
+| POST | `/api/ia/estrategias/rascunho` | L | Rascunho de estratégia (`titulo, descricao, categoria, campanha?, metas[], inicio?, fim?`) a partir de um `objetivo`. Sem substituto por regras: **503** sem IA. Respeita os limites de `POST /api/estrategias` |
+| POST | `/api/ia/estrategias/analise` | L | Critica uma estratégia antes de salvar (`estrategiaId?` + `estrategia`): `nota` 0–100, `pontosFortes`, `melhorias` e `sobreposicoes` com as vigentes (IA ou regras) |
+| POST | `/api/ia/estrategias/{id}/saude` | G, L | Explica a saúde da estratégia e recomenda ações (`saude` + `leitura` + `recomendacoes`; IA ou regras). O nível é sempre o das regras |
 
 ### Operação
 `GET /actuator/health` e `/actuator/info` são públicos (usados pelo healthcheck do Docker).

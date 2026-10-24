@@ -16,13 +16,12 @@ import br.com.fiap.aguiainova.domain.model.Perfil
 import br.com.fiap.aguiainova.ui.auth.LoginScreen
 import br.com.fiap.aguiainova.ui.auth.RegistroScreen
 import br.com.fiap.aguiainova.ui.dashboard.DashboardScreen
+import br.com.fiap.aguiainova.ui.estrategias.EstrategiaDetalheScreen
 import br.com.fiap.aguiainova.ui.estrategias.EstrategiaFormScreen
 import br.com.fiap.aguiainova.ui.estrategias.EstrategiasScreen
-import br.com.fiap.aguiainova.ui.estrategias.HistoricoEstrategiasScreen
 import br.com.fiap.aguiainova.ui.home.HomeGestorScreen
 import br.com.fiap.aguiainova.ui.home.HomeLiderancaScreen
 import br.com.fiap.aguiainova.ui.home.HomeOperadorScreen
-import br.com.fiap.aguiainova.ui.ia.AssistenteIaScreen
 import br.com.fiap.aguiainova.ui.ideias.IdeiaFormScreen
 import br.com.fiap.aguiainova.ui.ideias.IdeiasScreen
 import br.com.fiap.aguiainova.ui.perfil.PerfilScreen
@@ -74,11 +73,22 @@ fun NavGraph(container: AppContainer, navController: NavHostController = remembe
             IdeiaFormScreen(entrada.arguments?.getString(Rotas.ARGUMENTO_ID)) { navController.popBackStack() }
         }
 
-        composable(Rotas.ESTRATEGIAS) { ComPerfil { EstrategiasScreen(it, navController) } }
+        composable(
+            Rotas.PADRAO_ESTRATEGIAS,
+            arguments = argumentoOpcional(Rotas.ARGUMENTO_ABA)
+        ) { entrada ->
+            ComPerfil { EstrategiasScreen(it, navController, entrada.arguments?.getString(Rotas.ARGUMENTO_ABA)) }
+        }
         composable(Rotas.PADRAO_ESTRATEGIA_FORM, arguments = argumentoOpcional()) { entrada ->
             EstrategiaFormScreen(entrada.arguments?.getString(Rotas.ARGUMENTO_ID)) { navController.popBackStack() }
         }
-        composable(Rotas.HISTORICO_ESTRATEGIAS) { HistoricoEstrategiasScreen { navController.popBackStack() } }
+        composable(
+            Rotas.PADRAO_ESTRATEGIA_DETALHE,
+            arguments = listOf(navArgument(Rotas.ARGUMENTO_ID) { type = NavType.StringType })
+        ) { entrada ->
+            val id = entrada.arguments?.getString(Rotas.ARGUMENTO_ID) ?: return@composable
+            ComPerfil { EstrategiaDetalheScreen(id, it, navController) }
+        }
 
         composable(Rotas.PROJETOS) { ComPerfil { ProjetosScreen(it, navController) } }
         composable(Rotas.PROJETO_NOVO) { ProjetoFormScreen { navController.popBackStack() } }
@@ -91,13 +101,12 @@ fun NavGraph(container: AppContainer, navController: NavHostController = remembe
         }
 
         composable(Rotas.DASHBOARD) { DashboardScreen(navController) }
-        composable(Rotas.ASSISTENTE_IA) { AssistenteIaScreen { navController.popBackStack() } }
         composable(Rotas.PERFIL) { ComPerfil { PerfilScreen(it, navController) } }
     }
 }
 
-private fun argumentoOpcional() = listOf(
-    navArgument(Rotas.ARGUMENTO_ID) {
+private fun argumentoOpcional(nome: String = Rotas.ARGUMENTO_ID) = listOf(
+    navArgument(nome) {
         type = NavType.StringType
         nullable = true
         defaultValue = null

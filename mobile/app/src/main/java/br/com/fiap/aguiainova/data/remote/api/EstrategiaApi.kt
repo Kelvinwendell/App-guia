@@ -3,6 +3,7 @@ package br.com.fiap.aguiainova.data.remote.api
 import br.com.fiap.aguiainova.domain.model.DadosEstrategia
 import br.com.fiap.aguiainova.domain.model.Estrategia
 import br.com.fiap.aguiainova.domain.model.EstrategiaHistorico
+import br.com.fiap.aguiainova.domain.model.SaudeEstrategia
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -33,4 +34,10 @@ interface EstrategiaApi {
         @Query("categoria") categoria: String?,
         @Query("campanha") campanha: String?
     ): List<EstrategiaHistorico>
+
+    @GET("api/estrategias/saude")
+    suspend fun saude(): List<SaudeEstrategia>
+
+    @GET("api/estrategias/{id}/saude")
+    suspend fun saudeDe(@Path("id") id: String): SaudeEstrategia
 }
