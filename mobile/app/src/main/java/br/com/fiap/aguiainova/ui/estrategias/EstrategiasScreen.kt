@@ -133,7 +133,7 @@ fun EstrategiasScreen(perfil: Perfil, navController: NavController, abaInicial: 
 }
 
 @Composable
-private fun ListaDeEstrategias(
+internal fun ListaDeEstrategias(
     estado: Estado<PainelEstrategias>,
     vigentes: Boolean,
     perfil: Perfil,
