@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -40,6 +41,7 @@ import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.EstadoVazio
 import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
+import br.com.fiap.aguiainova.ui.components.MostrarNovoNoTopo
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.TelaBase
 import br.com.fiap.aguiainova.ui.ia.AssistenteViewModel
@@ -147,7 +149,10 @@ internal fun ListaDeEstrategias(
         if (lista.isEmpty()) {
             SemEstrategias(vigentes, perfil, aoCriar)
         } else {
+            val posicao = rememberLazyListState()
+            MostrarNovoNoTopo(posicao, lista.first().id)
             LazyColumn(
+                state = posicao,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp)
             ) {
