@@ -59,6 +59,9 @@ No Render, o passo a passo está em [`.context/deployment.md`](.context/deployme
 
 ### 2. App Android
 
+> **APK de produção (assinado):** passo a passo em [docs/RELEASE-MOBILE.md](docs/RELEASE-MOBILE.md), incluindo como gerar
+> pelo GitHub Actions (workflow **Mobile Release**), até pelo celular.
+
 O app precisa saber o endereço da API. Ele já vem com um padrão para o emulador (`http://10.0.2.2:8080/`, que é o
 computador que hospeda o emulador) e, **em build de debug**, o endereço pode ser trocado dentro do app, na tela de
 login ("Servidor: …"), sem recompilar — útil para aparelho físico (`http://IP-DO-SEU-PC:8080/`, mesma rede Wi-Fi). Em
