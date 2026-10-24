@@ -297,12 +297,21 @@ private fun corDoSinal(valor: Double?) = when {
     else -> AguiaCores.Sucesso
 }
 
+/** Leitura da IA sobre a empresa inteira: o contrato de insights nao recebe filtro, entao o texto diz que e geral. */
 @Composable
-private fun BlocoInsights(estado: Estado<InsightsIa>?, aoGerar: () -> Unit) {
+internal fun BlocoInsights(estado: Estado<InsightsIa>?, aoGerar: () -> Unit) {
     CartaoAguia {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "Leitura geral (todas as estratégias): não segue o filtro do topo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             when (estado) {
-                null -> Text("Peça à IA uma leitura executiva dos resultados e sugestões de melhoria.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                null -> Text(
+                    "Peça à IA uma leitura executiva dos resultados e sugestões de melhoria. São sugestões: nada muda sem a sua decisão.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Estado.Carregando -> CircularProgressIndicator()
                 is Estado.Erro -> Text(estado.mensagem, color = AguiaCores.Erro)
                 is Estado.Pronto -> ConteudoDeInsights(estado.dados)
