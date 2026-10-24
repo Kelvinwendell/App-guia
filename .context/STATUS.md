@@ -32,7 +32,7 @@ Atualizado a cada ciclo do loop de TDD. Ordem = prioridade de execução.
 
 | Spec | Título | Prioridade | Status |
 |---|---|---|---|
-| [011](specs/011-mobile-distribution-no-play-store.md) | Distribuir APK sem taxa da Play Store | BOM TER | BLOCKED |
+| [011](specs/011-mobile-distribution-no-play-store.md) | Distribuir APK sem taxa da Play Store | BOM TER | PARCIAL (código pronto, falta keystore+build+publicação) |
 
 ## Regra de atualização
 Depois de cada spec autônoma fechar o ciclo (REGRESSÃO verde), atualizar a linha aqui para
