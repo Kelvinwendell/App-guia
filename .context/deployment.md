@@ -8,11 +8,30 @@ Como o backend está implantado em produção hoje, de graça.
 App mobile → HTTPS → Render (Web Service, Docker, free tier) → TLS → MongoDB Atlas (M0, free tier)
 ```
 
-- **API:** `https://app-guia.onrender.com` — builda `backend/Dockerfile` automaticamente a
-  cada push na `main`. Plano gratuito "dorme" após 15 min sem tráfego (primeira requisição
-  depois disso demora ~1 min).
+- **API:** `https://app-guia.onrender.com` — builda `backend/Dockerfile`. Plano gratuito
+  "dorme" após 15 min sem tráfego (primeira requisição depois disso demora ~1 min).
 - **Banco:** MongoDB Atlas, cluster `Cluster0`, banco `aguiainova`. Autenticação SCRAM + TLS
-  obrigatórios (padrão do Atlas, não precisou de configuração extra).
+  obrigatórios (padrão do Atlas, não precisou de configuração extra). Índices são criados/
+  atualizados sozinhos a cada subida da API (`auto-index-creation: true` em
+  `application.yml`) — não existe passo de migração manual para o Mongo.
+
+## Deploy: só depois que o CI passa
+
+O job `deploy` em `.github/workflows/backend-ci.yml` roda só em push na `main` e só depois que
+o job `test` passa (`needs: test`). Ele chama o **Deploy Hook** do Render (dispara o build
+remotamente) e depois faz polling em `/actuator/health` até a API responder `UP` (confirma
+também que a conexão com o Mongo está saudável, já que o health check do Spring agrega o
+indicador do Mongo).
+
+**Configuração manual necessária (uma vez só, feita por quem tem acesso aos paineis):**
+
+1. No Render: **Settings → Deploy Hook** → copiar a URL.
+2. No GitHub: **Settings → Secrets and variables → Actions → New repository secret** →
+   nome `RENDER_DEPLOY_HOOK_URL`, valor a URL copiada.
+3. No Render: **Settings → Auto-Deploy** → desligar. Sem isso, o Render continua
+   re-deployando sozinho a cada push (inclusive um com teste quebrado) em paralelo ao job
+   do GitHub Actions — os dois dispararem juntos não quebra nada, mas é build duplicado e
+   anula o propósito de só subir depois que o CI passa.
 
 ## Variáveis de ambiente de produção
 
