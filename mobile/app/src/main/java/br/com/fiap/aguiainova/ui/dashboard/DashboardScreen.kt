@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,7 +98,7 @@ fun DashboardScreen(navController: NavController) {
                     Spacer(Modifier.height(4.dp))
                     when (aba) {
                         0 -> AbaResumo(dados)
-                        1 -> AbaEstrategias(dados, navController)
+                        1 -> AbaEstrategias(dados) { navController.navigate(Rotas.estrategiaDetalhe(it)) }
                         2 -> AbaProjetos(dados)
                         else -> BlocoInsights(insights, aoGerar = vm::gerarInsights)
                     }
@@ -108,7 +110,7 @@ fun DashboardScreen(navController: NavController) {
 }
 
 @Composable
-private fun AbaResumo(dados: DadosDashboard) {
+internal fun AbaResumo(dados: DadosDashboard) {
     Indicadores(dados.resumo)
     TituloSecao("Ideias")
     CartaoAguia {
@@ -121,33 +123,43 @@ private fun AbaResumo(dados: DadosDashboard) {
             LinhaInfo("Taxa de aprovação", Formatadores.percentual(ideias.taxaAprovacaoPercentual))
         }
     }
-    if (dados.resumo.proximosPrazos.isNotEmpty()) {
-        TituloSecao("Próximos prazos")
-        CartaoAguia {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                dados.resumo.proximosPrazos.forEach { prazo ->
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(0.dp)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(prazo.nome, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                "${Formatadores.data(prazo.prazo)} · ${prazo.progresso}%",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Selo(
-                            if (prazo.atrasado) "Atrasado" else prazo.status.rotulo,
-                            if (prazo.atrasado) AguiaCores.Erro else prazo.status.cor()
+    TituloSecao("Próximos prazos")
+    CartaoAguia {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (dados.resumo.proximosPrazos.isEmpty()) {
+                Text(
+                    "Nenhum projeto em andamento com prazo definido. Prazos aparecem aqui quando um projeto ativo tem data de entrega.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            dados.resumo.proximosPrazos.forEach { prazo ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1f)) {
+                        Text(prazo.nome, fontWeight = FontWeight.SemiBold)
+                        // Atraso, data, progresso e status em texto: o selo colorido nao e a unica pista.
+                        Text(
+                            listOfNotNull(
+                                if (prazo.atrasado) "Atrasado desde ${Formatadores.data(prazo.prazo)}" else "Prazo ${Formatadores.data(prazo.prazo)}",
+                                "${prazo.progresso}% concluído",
+                                prazo.status.rotulo
+                            ).joinToString(" · "),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Selo(
+                        if (prazo.atrasado) "Atrasado" else prazo.status.rotulo,
+                        if (prazo.atrasado) AguiaCores.Erro else prazo.status.cor()
+                    )
                 }
             }
         }
     }
 }
 
+/** Saude e ROI de todas as estrategias: o filtro do topo nao se aplica aqui, e o titulo diz isso. */
 @Composable
-private fun AbaEstrategias(dados: DadosDashboard, navController: NavController) {
+internal fun AbaEstrategias(dados: DadosDashboard, aoAbrirEstrategia: (String) -> Unit) {
     TituloSecao("Saúde das estratégias")
     if (dados.saude.isEmpty()) {
         Text("Nenhuma estratégia vigente para acompanhar.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -159,8 +171,13 @@ private fun AbaEstrategias(dados: DadosDashboard, navController: NavController) 
             NivelSaude.SEM_TRACAO -> 1
             NivelSaude.EM_DIA -> 2
         }
-    }.forEach { saude -> LinhaDeSaude(saude) { navController.navigate(Rotas.estrategiaDetalhe(saude.estrategiaId)) } }
-    TituloSecao("ROI por estratégia")
+    }.forEach { saude -> LinhaDeSaude(saude) { aoAbrirEstrategia(saude.estrategiaId) } }
+    TituloSecao("ROI por estratégia (todas)")
+    Text(
+        "Comparativo geral: não muda com o filtro de estratégia.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
     CartaoAguia {
         Column(Modifier.padding(16.dp)) {
             val itens = dados.porEstrategia.filter { it.roiPercentual != null }
@@ -196,7 +213,7 @@ private fun LinhaDeSaude(saude: SaudeEstrategia, aoClicar: () -> Unit) {
 }
 
 @Composable
-private fun AbaProjetos(dados: DadosDashboard) {
+internal fun AbaProjetos(dados: DadosDashboard) {
     TituloSecao("Projetos por status")
     CartaoAguia {
         Column(Modifier.padding(16.dp)) {
@@ -214,7 +231,10 @@ private fun AbaProjetos(dados: DadosDashboard) {
             if (dados.evolucao.isEmpty()) {
                 Text("Sem resultados registrados ainda.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                GraficoColunas(dados.evolucao.map { ItemGrafico(Formatadores.mes(it.mes), it.retornoNoMes) })
+                GraficoColunas(
+                    dados.evolucao.map { ItemGrafico(Formatadores.mes(it.mes), it.retornoNoMes) },
+                    formatarValor = Formatadores::moedaCompacta
+                )
                 Spacer(Modifier.height(8.dp))
                 LinhaInfo("Acumulado", Formatadores.moeda(dados.evolucao.last().retornoAcumulado))
             }
@@ -222,24 +242,59 @@ private fun AbaProjetos(dados: DadosDashboard) {
     }
 }
 
+/** KPIs em tres grupos (resultado financeiro, eficiencia, carteira e prazos); metrica sem dado aparece como "—". */
 @Composable
 private fun Indicadores(resumo: ResumoDashboard) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CartaoIndicador("ROI", Formatadores.percentual(resumo.roiPercentual), AguiaCores.Sucesso, Modifier.weight(1f))
-        CartaoIndicador("Lucro", Formatadores.moedaCompacta(resumo.lucroTotal), if (resumo.lucroTotal < 0) AguiaCores.Erro else AguiaCores.Sucesso, Modifier.weight(1f))
+    TituloSecao("Resultado financeiro")
+    ParDeIndicadores(
+        { CartaoIndicador("ROI", Formatadores.percentual(resumo.roiPercentual), corDoSinal(resumo.roiPercentual), it) },
+        { CartaoIndicador("Lucro", Formatadores.moedaCompacta(resumo.lucroTotal), corDoSinal(resumo.lucroTotal), it) }
+    )
+    ParDeIndicadores(
+        { CartaoIndicador("Investimento", Formatadores.moedaCompacta(resumo.investimentoTotal), AguiaCores.Alerta, it) },
+        { CartaoIndicador("Retorno", Formatadores.moedaCompacta(resumo.retornoTotal), AguiaCores.Primaria, it) }
+    )
+    TituloSecao("Eficiência")
+    ParDeIndicadores(
+        { CartaoIndicador("Produtividade", Formatadores.percentualComSinal(resumo.ganhoProdutividadeMedio), AguiaCores.Primaria, it) },
+        { CartaoIndicador("Redução de custos", Formatadores.percentual(resumo.reducaoCustosMedia), AguiaCores.Alerta, it) }
+    )
+    TituloSecao("Carteira e prazos")
+    ParDeIndicadores(
+        { CartaoIndicador("Projetos", resumo.totalProjetos.toString(), MaterialTheme.colorScheme.onSurfaceVariant, it) },
+        {
+            CartaoIndicador(
+                "Atrasados", resumo.projetosAtrasados.toString(),
+                if (resumo.projetosAtrasados > 0) AguiaCores.Erro else AguiaCores.Sucesso, it
+            )
+        }
+    )
+}
+
+/** Dois cartoes lado a lado; com fonte ampliada (valor "R$ 1,2 mi" grande) ficam um embaixo do outro. */
+@Composable
+private fun ParDeIndicadores(primeiro: @Composable (Modifier) -> Unit, segundo: @Composable (Modifier) -> Unit) {
+    if (LocalDensity.current.fontScale > ESCALA_QUE_EMPILHA) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            primeiro(Modifier.fillMaxWidth())
+            segundo(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            primeiro(Modifier.weight(1f))
+            segundo(Modifier.weight(1f))
+        }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CartaoIndicador("Investimento", Formatadores.moedaCompacta(resumo.investimentoTotal), AguiaCores.Alerta, Modifier.weight(1f))
-        CartaoIndicador("Retorno", Formatadores.moedaCompacta(resumo.retornoTotal), AguiaCores.Primaria, Modifier.weight(1f))
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CartaoIndicador("Produtividade", Formatadores.percentualComSinal(resumo.ganhoProdutividadeMedio), AguiaCores.Primaria, Modifier.weight(1f))
-        CartaoIndicador("Redução de custos", Formatadores.percentual(resumo.reducaoCustosMedia), AguiaCores.Alerta, Modifier.weight(1f))
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CartaoIndicador("Projetos", resumo.totalProjetos.toString(), MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
-        CartaoIndicador("Atrasados", resumo.projetosAtrasados.toString(), if (resumo.projetosAtrasados > 0) AguiaCores.Erro else AguiaCores.Sucesso, Modifier.weight(1f))
-    }
+}
+
+private const val ESCALA_QUE_EMPILHA = 1.3f
+
+/** Verde para ganho, vermelho para perda e neutro quando nao ha dado. */
+@Composable
+private fun corDoSinal(valor: Double?) = when {
+    valor == null -> MaterialTheme.colorScheme.onSurfaceVariant
+    valor < 0 -> AguiaCores.Erro
+    else -> AguiaCores.Sucesso
 }
 
 @Composable
