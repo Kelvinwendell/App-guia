@@ -41,6 +41,12 @@ app:
     # (fail-safe): esquecer esta variavel em producao nao pode, por si so, criar contas de
     # senha conhecida. O docker-compose.yml de desenvolvimento liga isso explicitamente.
     enabled: ${APP_SEED_ENABLED:false}
+    demo:
+      # Dados ficticios para apresentacao (ver .context/deployment.md): "carregar" cria 5 contas, estrategias, ideias e
+      # projetos de exemplo uma unica vez; "remover" apaga so o que foi criado por essas contas; qualquer outro
+      # valor desliga. A senha das contas vem de APP_SEED_DEMO_SENHA (minimo 6 caracteres) - nunca fica no repositorio.
+      modo: ${APP_SEED_DEMO:desligado}
+      senha: ${APP_SEED_DEMO_SENHA:}
   ai:
     enabled: ${AI_ENABLED:true}
     # gemini = Google Gemini API | openai = qualquer API compativel com OpenAI (OpenRouter, GitHub Models...)

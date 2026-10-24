@@ -51,6 +51,12 @@ docker compose up --build
 
 Para recomeçar do zero (apaga o banco): `docker compose down -v && docker compose up --build`.
 
+**Dados de mentira para apresentar o app.** Com `APP_SEED_DEMO=carregar` e uma senha em `APP_SEED_DEMO_SENHA` (6+
+caracteres, definida por você), a API cria uma indústria fictícia no banco atual: cinco contas
+(`helena.duarte@aguiainova.demo` é a Liderança e `marcos.oliveira@aguiainova.demo` o Gestor), seis estratégias, doze
+ideias e cinco projetos com resultados. Não duplica ao reiniciar; `APP_SEED_DEMO=remover` apaga só o que ela criou.
+No Render, o passo a passo está em [`.context/deployment.md`](.context/deployment.md).
+
 ### 2. App Android
 
 O app precisa saber o endereço da API. Ele já vem com um padrão para o emulador (`http://10.0.2.2:8080/`, que é o

@@ -33,6 +33,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-only-secret-troque-em-producao-min-32-bytes!}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-480}
       APP_SEED_ENABLED: ${APP_SEED_ENABLED:-true}
+      APP_SEED_DEMO: ${APP_SEED_DEMO:-desligado}
+      APP_SEED_DEMO_SENHA: ${APP_SEED_DEMO_SENHA:-}
       APP_ALLOW_ROLE_SELECTION: ${APP_ALLOW_ROLE_SELECTION:-true}
       AI_ENABLED: ${AI_ENABLED:-true}
       AI_PROVIDER: ${AI_PROVIDER:-gemini}

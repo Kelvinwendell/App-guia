@@ -41,6 +41,9 @@ app:
     allow-role-selection: ${APP_ALLOW_ROLE_SELECTION:true}
   seed:
     enabled: ${APP_SEED_ENABLED:false}
+    demo:
+      modo: ${APP_SEED_DEMO:desligado}
+      senha: ${APP_SEED_DEMO_SENHA:}
   ai:
     enabled: ${AI_ENABLED:true}
     provider: ${AI_PROVIDER:gemini}
