@@ -54,6 +54,7 @@ import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.DialogoConfirmacao
 import br.com.fiap.aguiainova.ui.components.MensagemVazia
+import br.com.fiap.aguiainova.ui.components.MostrarNovoNoTopo
 import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.Seletor
@@ -124,6 +125,7 @@ fun IdeiasScreen(perfil: Perfil, navController: NavController) {
                     val posicao = rememberLazyListState()
                     val ordemPelaIa = if (ordenarPorIa) exibidas.map { it.id } else null
                     LaunchedEffect(ordemPelaIa) { posicao.scrollToItem(0) }
+                    MostrarNovoNoTopo(posicao, exibidas.first().id)
                     LazyColumn(
                         state = posicao,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
