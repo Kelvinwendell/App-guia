@@ -16,6 +16,7 @@ class AuthViewModel(
 
     private val _urlServidor = MutableStateFlow(servidor.urlBase())
     val urlServidor: StateFlow<String> = _urlServidor.asStateFlow()
+    val servidorEditavel: Boolean = servidor.editavel()
 
     fun entrar(email: String, senha: String, aoEntrar: (Perfil) -> Unit) {
         if (email.isBlank() || senha.isBlank()) {
