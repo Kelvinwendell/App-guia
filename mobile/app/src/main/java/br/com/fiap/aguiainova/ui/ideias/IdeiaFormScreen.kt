@@ -36,43 +36,52 @@ fun IdeiaFormScreen(ideiaId: String?, aoConcluir: () -> Unit) {
         aoAvisoLido = vm::avisoLido
     ) { modificador ->
         ConteudoDoEstado(estado, aoTentarNovamente = vm::carregar, modifier = modificador) { formulario ->
-            val existente = formulario.existente
-            var titulo by remember { mutableStateOf(existente?.titulo.orEmpty()) }
-            var descricao by remember { mutableStateOf(existente?.descricao.orEmpty()) }
-            var categoria by remember { mutableStateOf(existente?.categoria.orEmpty()) }
-            var estrategiaId by remember { mutableStateOf(existente?.estrategiaId) }
-            var tentouSalvar by remember { mutableStateOf(false) }
-
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                CampoTexto(
-                    titulo, { titulo = it }, "Título",
-                    erro = if (tentouSalvar && titulo.isBlank()) "Informe um título." else null
-                )
-                CampoTexto(
-                    descricao, { descricao = it }, "Descreva sua ideia", linhas = 4,
-                    erro = if (tentouSalvar && descricao.isBlank()) "Descreva a ideia." else null
-                )
-                CampoTexto(
-                    categoria, { categoria = it }, "Categoria",
-                    erro = if (tentouSalvar && categoria.isBlank()) "Informe uma categoria." else null
-                )
-                Seletor(
-                    rotulo = "Estratégia relacionada",
-                    opcoes = formulario.estrategiasVigentes,
-                    selecionado = formulario.estrategiasVigentes.firstOrNull { it.id == estrategiaId },
-                    rotuloDe = { it.titulo },
-                    aoSelecionar = { estrategiaId = it?.id },
-                    textoVazio = "Nenhuma"
-                )
-                BotaoPrimario(
-                    "Salvar ideia",
-                    aoClicar = {
-                        tentouSalvar = true
-                        vm.salvar(DadosIdeia(titulo, descricao, categoria, estrategiaId), aoConcluir)
-                    },
-                    carregando = ocupado
-                )
-            }
+            IdeiaFormConteudo(formulario, ocupado, aoSalvar = { dados -> vm.salvar(dados, aoConcluir) })
         }
+    }
+}
+
+/**
+ * O formulario sem ViewModel nem navegacao, para teste. Os erros de campo so aparecem depois da primeira tentativa de
+ * salvar, e o texto digitado nunca e perdido; quem valida de verdade (e avisa) continua sendo o ViewModel.
+ */
+@Composable
+internal fun IdeiaFormConteudo(formulario: FormularioIdeia, ocupado: Boolean, aoSalvar: (DadosIdeia) -> Unit) {
+    val existente = formulario.existente
+    var titulo by remember { mutableStateOf(existente?.titulo.orEmpty()) }
+    var descricao by remember { mutableStateOf(existente?.descricao.orEmpty()) }
+    var categoria by remember { mutableStateOf(existente?.categoria.orEmpty()) }
+    var estrategiaId by remember { mutableStateOf(existente?.estrategiaId) }
+    var tentouSalvar by remember { mutableStateOf(false) }
+
+    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        CampoTexto(
+            titulo, { titulo = it }, "Título",
+            erro = if (tentouSalvar && titulo.isBlank()) "Informe um título." else null
+        )
+        CampoTexto(
+            descricao, { descricao = it }, "Descreva sua ideia", linhas = 4,
+            erro = if (tentouSalvar && descricao.isBlank()) "Descreva a ideia." else null
+        )
+        CampoTexto(
+            categoria, { categoria = it }, "Categoria",
+            erro = if (tentouSalvar && categoria.isBlank()) "Informe uma categoria." else null
+        )
+        Seletor(
+            rotulo = "Estratégia relacionada",
+            opcoes = formulario.estrategiasVigentes,
+            selecionado = formulario.estrategiasVigentes.firstOrNull { it.id == estrategiaId },
+            rotuloDe = { it.titulo },
+            aoSelecionar = { estrategiaId = it?.id },
+            textoVazio = "Nenhuma"
+        )
+        BotaoPrimario(
+            "Salvar ideia",
+            aoClicar = {
+                tentouSalvar = true
+                aoSalvar(DadosIdeia(titulo, descricao, categoria, estrategiaId))
+            },
+            carregando = ocupado
+        )
     }
 }

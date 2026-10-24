@@ -54,6 +54,7 @@ import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.DialogoConfirmacao
 import br.com.fiap.aguiainova.ui.components.MensagemVazia
+import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.Seletor
 import br.com.fiap.aguiainova.ui.components.TelaBase
@@ -201,7 +202,7 @@ fun CartaoIdeia(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(ideia.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(ideia.descricao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinhaQuebravel {
                 Selo(ideia.status.rotulo, ideia.status.cor())
                 Selo("Prioridade ${ideia.prioridade.rotulo.lowercase()}", ideia.prioridade.cor())
             }
@@ -260,7 +261,8 @@ private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Tres selos ("Nota", "Sugere: ...", origem) nao cabem numa linha em 360dp/fonte 150%: quebram em vez de vazar.
+            LinhaQuebravel {
                 Selo("Nota ${avaliacao.score}/100", AguiaCores.Primaria)
                 Selo("Sugere: ${avaliacao.prioridadeSugerida.rotulo}", avaliacao.prioridadeSugerida.cor())
                 Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", MaterialTheme.colorScheme.onSurfaceVariant)
