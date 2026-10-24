@@ -6,6 +6,11 @@ Gestão da inovação empresarial: operadores registram **ideias**, gestores as 
 liderança define **estratégias** e acompanha o **dashboard** (ROI, lucro, prazo, investimento, produtividade).
 O app Android da Sprint 1 agora conversa com uma API real (sem mocks, sem Firebase/Room) e há IA generativa opcional.
 
+## Planejamento do redesign
+
+O pacote de [contexto, PRD e specs do redesign Android](docs/redesign/README.md) descreve a direção Material 3,
+a arquitetura a preservar e a execução em 11 entregas. Comece pela validação de ambiente da SPEC-RD-000.
+
 ## Em produção
 
 API rodando de graça (MongoDB Atlas + Render): **<https://app-guia.onrender.com>**
