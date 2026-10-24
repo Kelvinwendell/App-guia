@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,12 +25,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-/** [erro], quando informado, ativa o estado de erro do campo e substitui [dica] pela mensagem de erro. */
+/**
+ * [erro], quando informado, ativa o estado de erro do campo e substitui [dica] pela mensagem de erro. [aoConcluir],
+ * quando informado, troca a acao do teclado por "Concluir" e a executa (ex.: entrar direto do campo de senha).
+ */
 @Composable
 fun CampoTexto(
     valor: String,
@@ -41,7 +46,8 @@ fun CampoTexto(
     teclado: KeyboardType = KeyboardType.Text,
     dica: String? = null,
     habilitado: Boolean = true,
-    erro: String? = null
+    erro: String? = null,
+    aoConcluir: (() -> Unit)? = null
 ) {
     OutlinedTextField(
         value = valor,
@@ -54,7 +60,11 @@ fun CampoTexto(
         enabled = habilitado,
         isError = erro != null,
         visualTransformation = if (senha) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = KeyboardOptions(keyboardType = if (senha) KeyboardType.Password else teclado),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (senha) KeyboardType.Password else teclado,
+            imeAction = if (aoConcluir != null) ImeAction.Done else ImeAction.Default
+        ),
+        keyboardActions = KeyboardActions(onDone = aoConcluir?.let { acao -> { acao() } }),
         supportingText = (erro ?: dica)?.let { texto -> { Text(texto) } }
     )
 }

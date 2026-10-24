@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ import br.com.fiap.aguiainova.domain.model.Projeto
 import br.com.fiap.aguiainova.domain.model.ResultadoProjeto
 import br.com.fiap.aguiainova.domain.model.StatusProjeto
 import br.com.fiap.aguiainova.ui.common.AoRetomar
+import br.com.fiap.aguiainova.ui.common.Estado
 import br.com.fiap.aguiainova.ui.common.viewModelDoApp
 import br.com.fiap.aguiainova.ui.components.BarraProgresso
 import br.com.fiap.aguiainova.ui.components.BotaoPrimario
@@ -74,27 +76,15 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
         aoAvisoLido = vm::avisoLido
     ) { modificador ->
         ConteudoDoEstado(estado, aoTentarNovamente = vm::carregar, modifier = modificador) { projeto ->
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ResumoDoProjeto(projeto)
-                IndicadoresDoProjeto(projeto)
-                if (gestor) {
-                    EditorDeAndamento(projeto, ocupado, vm::salvarAndamento)
-                }
-                TituloSecao("Resultados obtidos")
-                if (projeto.resultados.isEmpty()) {
-                    Text("Nenhum resultado registrado ainda.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                projeto.resultados.forEach { resultado ->
-                    CartaoResultado(resultado, removivel = gestor) { resultadoParaRemover = resultado }
-                }
-                if (gestor) {
-                    BotaoPrimario("Adicionar resultado", aoClicar = { registrandoResultado = true })
-                    TextButton(onClick = { confirmandoExclusao = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Excluir projeto", color = AguiaCores.Erro)
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
-            }
+            ProjetoDetalheConteudo(
+                projeto = projeto,
+                gestor = gestor,
+                ocupado = ocupado,
+                aoSalvarAndamento = vm::salvarAndamento,
+                aoRemoverResultado = { resultadoParaRemover = it },
+                aoAdicionarResultado = { registrandoResultado = true },
+                aoExcluir = { confirmandoExclusao = true }
+            )
         }
     }
 
@@ -106,9 +96,12 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
         )
     }
     if (confirmandoExclusao) {
+        // Mesmo padrao de ideias e estrategias: a confirmacao diz QUAL projeto sera removido.
+        val nome = (estado as? Estado.Pronto)?.dados?.nome
         DialogoConfirmacao(
             titulo = "Excluir projeto?",
-            texto = "O projeto e todos os seus resultados serão removidos.",
+            texto = (nome?.let { "\"$it\" e todos os seus resultados serão removidos." }
+                ?: "O projeto e todos os seus resultados serão removidos.") + " Essa ação não pode ser desfeita.",
             aoConfirmar = { confirmandoExclusao = false; vm.excluir(aoVoltar) },
             aoCancelar = { confirmandoExclusao = false }
         )
@@ -120,6 +113,43 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
             aoConfirmar = { vm.removerResultado(resultado.id); resultadoParaRemover = null },
             aoCancelar = { resultadoParaRemover = null }
         )
+    }
+}
+
+/**
+ * O detalhe sem ViewModel nem dialogos, para teste. So o GESTOR ve editar andamento, adicionar/remover resultado e
+ * excluir; a lideranca consulta o mesmo conteudo sem nenhuma dessas acoes.
+ */
+@Composable
+internal fun ProjetoDetalheConteudo(
+    projeto: Projeto,
+    gestor: Boolean,
+    ocupado: Boolean,
+    aoSalvarAndamento: (AndamentoProjeto) -> Unit,
+    aoRemoverResultado: (ResultadoProjeto) -> Unit,
+    aoAdicionarResultado: () -> Unit,
+    aoExcluir: () -> Unit
+) {
+    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ResumoDoProjeto(projeto)
+        IndicadoresDoProjeto(projeto)
+        if (gestor) {
+            EditorDeAndamento(projeto, ocupado, aoSalvarAndamento)
+        }
+        TituloSecao("Resultados obtidos")
+        if (projeto.resultados.isEmpty()) {
+            Text("Nenhum resultado registrado ainda.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        projeto.resultados.forEach { resultado ->
+            CartaoResultado(resultado, removivel = gestor) { aoRemoverResultado(resultado) }
+        }
+        if (gestor) {
+            BotaoPrimario("Adicionar resultado", aoClicar = aoAdicionarResultado)
+            TextButton(onClick = aoExcluir, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("Excluir projeto", color = AguiaCores.Erro)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -154,7 +184,15 @@ private fun IndicadoresDoProjeto(projeto: Projeto) {
                 "Lucro", Formatadores.moeda(projeto.lucro),
                 corValor = if (projeto.lucro < 0) AguiaCores.Erro else AguiaCores.Sucesso
             )
-            LinhaInfo("ROI", Formatadores.percentual(projeto.roi))
+            // Mesma convencao do lucro: negativo em vermelho, para o ROI nao parecer neutro quando o projeto da prejuizo.
+            LinhaInfo(
+                "ROI", Formatadores.percentual(projeto.roi),
+                corValor = when {
+                    projeto.roi == null -> Color.Unspecified
+                    projeto.roi < 0 -> AguiaCores.Erro
+                    else -> AguiaCores.Sucesso
+                }
+            )
             LinhaInfo("Aumento de produtividade", Formatadores.percentualComSinal(projeto.ganhoProdutividade))
             LinhaInfo("Redução de custos", Formatadores.percentual(projeto.reducaoCustos))
         }

@@ -8,6 +8,7 @@ import br.com.fiap.aguiainova.domain.model.Perfil
 import br.com.fiap.aguiainova.domain.model.Usuario
 import br.com.fiap.aguiainova.domain.repository.AuthRepository
 import br.com.fiap.aguiainova.ui.support.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
@@ -112,16 +113,31 @@ class AuthViewModelTest {
     private fun novoUsuario(nome: String = "Vinícius", email: String = "a@b.com", senha: String = "123456") =
         NovoUsuario(nome, email, senha, Perfil.OPERADOR)
 
+    @Test
+    fun `segundo pedido de login enquanto o primeiro responde e ignorado`() {
+        val segurar = CompletableDeferred<Resultado<Usuario>>()
+        auth.segurar = segurar
+        val vm = viewModel()
+
+        vm.entrar("a@b.com", "123456") {}
+        vm.entrar("a@b.com", "123456") {}
+
+        assertEquals(1, auth.chamadasEntrar)
+        segurar.complete(Resultado.Falha(TipoErro.NAO_AUTENTICADO, "Credenciais inválidas."))
+        assertFalse(vm.ocupado.value)
+    }
+
     private class FakeAuth : AuthRepository {
         override val usuario: StateFlow<Usuario?> = MutableStateFlow(null)
         var entrar: Resultado<Usuario> = Resultado.Falha(TipoErro.DESCONHECIDO, "não configurado no teste")
         var cadastrar: Resultado<Usuario> = Resultado.Falha(TipoErro.DESCONHECIDO, "não configurado no teste")
         var chamadasEntrar = 0
         var chamadasCadastrar = 0
+        var segurar: CompletableDeferred<Resultado<Usuario>>? = null
 
         override suspend fun entrar(email: String, senha: String): Resultado<Usuario> {
             chamadasEntrar++
-            return entrar
+            return segurar?.await() ?: entrar
         }
 
         override suspend fun cadastrar(novo: NovoUsuario): Resultado<Usuario> {
