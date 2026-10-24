@@ -1,36 +1,36 @@
-# .context — engenharia de contexto do Águia Inova
+# .context — conhecimento durável do Águia Inova
 
-Esta pasta existe para que qualquer sessão (humana ou agente) consiga retomar o trabalho de
-preparar o sistema para produção sem precisar re-derivar tudo do zero. Ela não é documentação
-de produto — é o **estado vivo do trabalho de hardening/produção**.
+Esta pasta é **engenharia de contexto**, não documentação de produto nem rastreamento de
+tarefas: um conjunto pequeno e de alto sinal de fatos duráveis sobre este projeto, para que
+qualquer sessão (humana ou de IA) consiga trabalhar nele corretamente sem precisar
+redescobrir tudo do zero lendo o código inteiro.
 
-## Estrutura
+## O que entra aqui (e o que não entra)
 
-- `architecture.md` — mapa condensado da arquitetura (backend + mobile), padrões de projeto
-  usados, e avaliação de aderência a clean code. Resultado de uma auditoria de código completa.
-- `STATUS.md` — tabela mestre de todas as specs, com status atual. **Sempre olhe aqui primeiro.**
-- `specs/NNN-titulo.md` — uma spec por item de trabalho, cada uma com critério de aceite e
-  plano de TDD próprio.
+**Entra:** arquitetura e padrões de projeto realmente usados, convenções de código e de teste
+que o repositório já segue, invariantes de segurança que não podem regredir, como o fluxo de
+Git deste projeto funciona (incluindo as armadilhas já encontradas), e como o sistema está
+implantado em produção. Tudo isso muda devagar e vale a pena manter atualizado.
 
-## Regra do loop de desenvolvimento
+**Não entra:** listas de tarefas, status de "o que falta fazer", specs de trabalho em
+andamento. Isso é estado transitório — pertence a issues, PRs e ao histórico do Git, não a um
+arquivo de contexto de longa duração que acumula lixo conforme o trabalho avança.
 
-Cada spec executável localmente segue este ciclo, sem pular etapa:
+## Arquivos
 
-1. **RED** — escrever/ajustar um teste que expressa o comportamento desejado e confirmar que
-   ele falha (prova que o teste testa algo real, não um teste que passa por acidente).
-2. **GREEN** — implementar o mínimo necessário para o teste passar.
-3. **REGRESSÃO** — rodar a suíte inteira (`./mvnw test` no backend). Se algo quebrou, isso é
-   sinal de efeito colateral: diagnosticar e corrigir antes de seguir, nunca comentar/pular teste.
-4. Se RED não virou GREEN de primeira: diagnosticar a causa real do erro, ajustar a implementação
-   (não o teste, a menos que o teste estivesse errado) e repetir 2-3 até fechar.
-5. Só quando REGRESSÃO está 100% verde: marcar a spec como `DONE` em `STATUS.md`, commitar com
-   mensagem clara, e seguir para a próxima spec pela ordem de prioridade.
+- [`architecture.md`](architecture.md) — camadas, padrões de projeto, onde cada coisa mora
+  (backend e mobile), como rodar os testes.
+- [`conventions.md`](conventions.md) — convenções de código e teste que o projeto já segue;
+  siga o mesmo padrão ao adicionar algo novo.
+- [`security-invariants.md`](security-invariants.md) — regras de segurança que não podem
+  regredir, com o porquê de cada uma e onde são aplicadas no código.
+- [`git-workflow.md`](git-workflow.md) — branch, commits, PR, merge, CI — e as armadilhas já
+  encontradas nesse fluxo.
+- [`deployment.md`](deployment.md) — como o sistema está implantado em produção hoje
+  (MongoDB Atlas + Render), variáveis de ambiente e problemas já resolvidos no caminho.
 
-Specs marcadas `BLOCKED (requer ação externa)` não entram nesse loop — exigem uma conta,
-credencial ou decisão que só o dono do projeto pode fazer (ex.: criar conta no MongoDB Atlas).
-Para essas, a spec serve como checklist de execução manual.
+## Regra de manutenção
 
-## Prioridade
-
-`CRÍTICO` → `IMPORTANTE` → `BOM TER`, sempre nessa ordem, dentro de cada grupo (autônomo vs.
-bloqueado) — ver `STATUS.md` para a lista ordenada.
+Atualize o arquivo relevante quando um fato durável mudar de verdade (uma nova convenção
+pega, uma regra de segurança nova, a arquitetura muda). Não registre aqui o "estou fazendo
+X agora" — isso é para o commit, a PR ou a conversa, não para este diretório.
