@@ -26,7 +26,7 @@ Atualizado a cada ciclo do loop de TDD. Ordem = prioridade de execução.
 | Spec | Título | Prioridade | Status |
 |---|---|---|---|
 | [009](specs/009-mongodb-atlas-migration.md) | MongoDB Atlas (grátis) | CRÍTICO | BLOCKED |
-| [010](specs/010-deploy-render-free.md) | Deploy no Render (grátis) | CRÍTICO | BLOCKED |
+| [010](specs/010-deploy-oracle-free.md) | Deploy no Oracle Cloud Always Free (grátis) | CRÍTICO | BLOCKED |
 | [011](specs/011-mobile-distribution-no-play-store.md) | Distribuir APK sem taxa da Play Store | BOM TER | BLOCKED |
 
 ## Regra de atualização
