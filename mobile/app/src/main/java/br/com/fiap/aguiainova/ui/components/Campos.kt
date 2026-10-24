@@ -3,7 +3,7 @@ package br.com.fiap.aguiainova.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,12 +24,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
+/** [erro], quando informado, ativa o estado de erro do campo e substitui [dica] pela mensagem de erro. */
 @Composable
 fun CampoTexto(
     valor: String,
@@ -40,19 +40,22 @@ fun CampoTexto(
     linhas: Int = 1,
     teclado: KeyboardType = KeyboardType.Text,
     dica: String? = null,
-    habilitado: Boolean = true
+    habilitado: Boolean = true,
+    erro: String? = null
 ) {
     OutlinedTextField(
         value = valor,
         onValueChange = aoMudar,
         label = { Text(rotulo) },
         modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
         singleLine = linhas == 1,
         minLines = linhas,
         enabled = habilitado,
+        isError = erro != null,
         visualTransformation = if (senha) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (senha) KeyboardType.Password else teclado),
-        supportingText = dica?.let { texto -> { Text(texto) } }
+        supportingText = (erro ?: dica)?.let { texto -> { Text(texto) } }
     )
 }
 
@@ -74,7 +77,7 @@ fun <T> Seletor(
         OutlinedButton(
             onClick = { aberto = true },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.weight(1f)) {
                 Text(rotulo, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -104,11 +107,11 @@ fun BotaoPrimario(
     Button(
         onClick = aoClicar,
         enabled = habilitado && !carregando,
-        modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(14.dp)
+        modifier = modifier.heightIn(min = 52.dp),
+        shape = RoundedCornerShape(50)
     ) {
         if (carregando) {
-            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
+            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
         } else {
             Text(texto)
         }
