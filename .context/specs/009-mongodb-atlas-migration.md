@@ -1,7 +1,7 @@
 # SPEC-009: Migrar o banco para MongoDB Atlas (camada gratuita)
 
 ## Status
-BLOCKED (requer ação externa — conta no MongoDB Atlas)
+DONE
 
 ## Prioridade
 CRÍTICO
@@ -21,19 +21,25 @@ estudantil), já vem com autenticação (SCRAM) e TLS obrigatórios por padrão 
 de segurança sem precisar configurar nada manualmente de criptografia.
 
 ## Checklist de execução (manual, pelo dono do projeto)
-- [ ] Criar conta em https://www.mongodb.com/cloud/atlas/register
-- [ ] Criar um cluster M0 (gratuito) — escolher a região mais próxima do servidor onde a API
-      vai rodar (SPEC-010).
-- [ ] Criar um usuário de banco com senha forte (não reaproveitar senha de outra conta).
-- [ ] Liberar acesso de rede: para o servidor da SPEC-010 (ou `0.0.0.0/0` temporariamente,
-      trocando depois pelo IP fixo do serviço de hospedagem, se ele tiver um).
-- [ ] Copiar a connection string (`mongodb+srv://usuario:senha@cluster.../aguiainova`) e
-      configurar como variável de ambiente `MONGODB_URI` no serviço de hospedagem (nunca no
-      código, nunca no `.env` commitado).
-- [ ] Confirmar a conexão: subir a API apontando pra essa URI e rodar
-      `curl $URL_DA_API/actuator/health` esperando `{"status":"UP"}`.
+- [x] Criar conta em https://www.mongodb.com/cloud/atlas/register
+- [x] Criar um cluster M0 (gratuito).
+- [x] Usuário de banco criado (fluxo automático do Atlas: `kelvinwendellbarboza_db_user`,
+      papel `atlasAdmin` — mais amplo que o necessário, ver nota abaixo).
+- [x] Acesso de rede liberado: `0.0.0.0/0` na IP Access List (necessário porque o Render,
+      no plano gratuito, não tem IP de saída fixo).
+- [x] Connection string configurada como `MONGODB_URI` no Render (nunca commitada).
+- [x] Conexão confirmada: `curl https://app-guia.onrender.com/actuator/health` →
+      `{"status":"UP"}`.
 
 ## Resultado
-(preencher quando o checklist acima for executado pelo dono do projeto; eu posso ajudar a
-validar a conexão quando a connection string estiver disponível, sem ver a senha em claro se
-preferir passá-la só como variável de ambiente no serviço de hospedagem)
+Cluster `Cluster0`, host `cluster0.6dtkj0d.mongodb.net`, banco `aguiainova`. Conexão validada
+de ponta a ponta através do Render em produção.
+
+**Obstáculo real encontrado**: a entrada de IP `0.0.0.0/0` foi criada pelo Atlas como
+temporária por padrão (expirava em algumas horas) — precisou editar e desligar a expiração,
+senão o deploy voltaria a falhar sozinho depois.
+
+**Pendência de segurança de baixo risco, não bloqueante**: o usuário do banco tem papel
+`atlasAdmin` (acesso total ao projeto Atlas), mais do que a API precisa (só `readWrite` no
+banco `aguiainova`). Troca opcional e de baixo risco para depois: criar um usuário novo em
+Database Access com papel restrito e atualizar `MONGODB_URI` no Render.
