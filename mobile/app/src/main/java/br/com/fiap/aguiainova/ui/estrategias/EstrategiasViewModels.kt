@@ -164,13 +164,47 @@ class EstrategiaFormViewModel(
         dados.titulo.isNotBlank() && dados.descricao.isNotBlank() && dados.categoria.isNotBlank()
 }
 
-/** Historico de mudancas (id, data, categoria, campanha); os filtros por categoria e campanha sao feitos na tela. */
+/** Filtro do historico; nulo em um campo quer dizer "todas". */
+data class FiltroHistorico(val categoria: String? = null, val campanha: String? = null) {
+    val vazio: Boolean get() = categoria == null && campanha == null
+}
+
+/** Opcoes dos seletores de filtro, tiradas do historico completo (a lista filtrada encolheria as opcoes). */
+data class OpcoesHistorico(val categorias: List<String> = emptyList(), val campanhas: List<String> = emptyList())
+
+/**
+ * Historico de mudancas (id, data, categoria, campanha). O filtro mora aqui e vai para o repositorio, para que a API
+ * filtre e para que "tentar novamente" repita a mesma busca.
+ */
 class HistoricoEstrategiasViewModel(private val estrategias: EstrategiaRepository) : BaseViewModel() {
 
     private val _estado = MutableStateFlow<Estado<List<EstrategiaHistorico>>>(Estado.Carregando)
     val estado: StateFlow<Estado<List<EstrategiaHistorico>>> = _estado.asStateFlow()
 
+    private val _filtro = MutableStateFlow(FiltroHistorico())
+    val filtro: StateFlow<FiltroHistorico> = _filtro.asStateFlow()
+
+    private val _opcoes = MutableStateFlow(OpcoesHistorico())
+    val opcoes: StateFlow<OpcoesHistorico> = _opcoes.asStateFlow()
+
     fun carregar() {
-        _estado.carregar { estrategias.historico() }
+        val filtro = _filtro.value
+        _estado.carregar {
+            estrategias.historico(filtro.categoria, filtro.campanha).also { resultado ->
+                if (filtro.vazio && resultado is Resultado.Sucesso) {
+                    _opcoes.value = OpcoesHistorico(
+                        resultado.dados.map { it.categoria }.distinct().sorted(),
+                        resultado.dados.mapNotNull { it.campanha }.distinct().sorted()
+                    )
+                }
+            }
+        }
+    }
+
+    fun filtrarPor(categoria: String?, campanha: String?) {
+        val novo = FiltroHistorico(categoria, campanha)
+        if (novo == _filtro.value) return
+        _filtro.value = novo
+        carregar()
     }
 }

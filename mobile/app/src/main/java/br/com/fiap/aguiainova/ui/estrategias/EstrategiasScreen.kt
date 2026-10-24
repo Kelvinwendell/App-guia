@@ -39,6 +39,7 @@ import br.com.fiap.aguiainova.ui.components.AbasDaTela
 import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.EstadoVazio
+import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.TelaBase
 import br.com.fiap.aguiainova.ui.ia.AssistenteViewModel
@@ -186,7 +187,7 @@ private fun SemEstrategias(vigentes: Boolean, perfil: Perfil, aoCriar: () -> Uni
 /** "2 em dia · 1 em risco": o retrato da carteira de estrategias antes de olhar uma a uma. */
 @Composable
 private fun ResumoDeSaude(contagem: Map<NivelSaude, Int>) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LinhaQuebravel {
         NivelSaude.entries.filter { (contagem[it] ?: 0) > 0 }.forEach { nivel ->
             Selo("${contagem[nivel]} ${nivel.rotulo.lowercase()}", nivel.cor())
         }
@@ -212,7 +213,7 @@ private fun CartaoEstrategia(estrategia: Estrategia, saude: SaudeEstrategia?, ao
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinhaQuebravel {
                 Selo(estrategia.categoria, AguiaCores.Primaria)
                 estrategia.campanha?.let { Selo(it, AguiaCores.Alerta) }
             }

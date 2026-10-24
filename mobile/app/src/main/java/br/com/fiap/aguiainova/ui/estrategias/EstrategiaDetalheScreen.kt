@@ -40,6 +40,7 @@ import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.DialogoConfirmacao
 import br.com.fiap.aguiainova.ui.components.LinhaInfo
+import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.TelaBase
 import br.com.fiap.aguiainova.ui.theme.AguiaCores
@@ -92,9 +93,11 @@ fun EstrategiaDetalheScreen(id: String, perfil: Perfil, navController: NavContro
     }
 
     if (excluindo) {
+        val titulo = (estado as? Estado.Pronto)?.dados?.estrategia?.titulo
         DialogoConfirmacao(
             titulo = "Excluir estratégia?",
-            texto = "A estratégia será removida. O histórico é mantido. " +
+            texto = (titulo?.let { "\"$it\" será removida." } ?: "A estratégia será removida.") +
+                " O histórico é mantido. " +
                 "Se houver ideias ou projetos vinculados, encerre-a em vez de excluir.",
             aoConfirmar = {
                 excluindo = false
@@ -110,7 +113,7 @@ private fun PlanoDaEstrategia(estrategia: Estrategia) {
     CartaoAguia {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(estrategia.titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinhaQuebravel {
                 Selo(estrategia.status.rotulo, estrategia.status.cor())
                 Selo(estrategia.categoria, AguiaCores.Primaria)
                 estrategia.campanha?.let { Selo(it, AguiaCores.Alerta) }
