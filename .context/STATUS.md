@@ -19,7 +19,7 @@ Atualizado a cada ciclo do loop de TDD. Ordem = prioridade de execução.
 | Spec | Título | Prioridade | Status |
 |---|---|---|---|
 | [007](specs/007-mobile-lock-server-switch.md) | Travar troca de servidor fora de debug | CRÍTICO | DONE / não verificado |
-| [008](specs/008-mobile-encrypted-session.md) | Sessão criptografada no mobile | IMPORTANTE | PENDING |
+| [008](specs/008-mobile-encrypted-session.md) | Sessão criptografada no mobile | IMPORTANTE | DONE / não verificado (risco maior) |
 
 ## Bloqueadas — exigem conta/credencial sua (eu não posso executar)
 

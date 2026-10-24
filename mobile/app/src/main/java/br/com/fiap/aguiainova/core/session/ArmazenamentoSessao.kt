@@ -1,6 +1,8 @@
 package br.com.fiap.aguiainova.core.session
 
 import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import br.com.fiap.aguiainova.domain.model.Usuario
 import com.google.gson.Gson
 
@@ -13,12 +15,22 @@ interface ArmazenamentoSessao {
 }
 
 /**
- * Guarda a sessao no armazenamento privado do app (SharedPreferences), que outros apps nao conseguem ler. O arquivo
- * "sessao" e excluido do backup automatico do Android (veja res/xml), para o token nao sair do aparelho.
+ * Guarda a sessao em SharedPreferences criptografado (Jetpack Security): nem copiando o arquivo de um aparelho
+ * rooteado/com backup habilitado da para ler o token em texto puro. O arquivo "sessao" tambem e excluido do
+ * backup automatico do Android (veja res/xml), como camada adicional.
  */
 class ArmazenamentoSessaoPrefs(context: Context) : ArmazenamentoSessao {
 
-    private val preferencias = context.getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
+    private val preferencias = run {
+        val chaveMestra = MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+        EncryptedSharedPreferences.create(
+            context,
+            ARQUIVO,
+            chaveMestra,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
     private val gson = Gson()
 
     override fun token(): String? = preferencias.getString(CHAVE_TOKEN, null)
