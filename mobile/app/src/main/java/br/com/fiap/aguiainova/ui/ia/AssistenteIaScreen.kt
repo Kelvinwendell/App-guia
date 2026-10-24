@@ -104,6 +104,9 @@ private fun Balao(mensagem: MensagemChat) {
     Box(Modifier.fillMaxWidth(), contentAlignment = if (doUsuario) Alignment.CenterEnd else Alignment.CenterStart) {
         Text(
             mensagem.texto,
+            // texto deve usar o par on* do tema: onPrimary (escuro) sobre o azul claro da Primaria,
+            // nao a cor de texto padrao (clara) - senao fica ilegivel sobre o balao do usuario.
+            color = if (doUsuario) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .background(if (doUsuario) AguiaCores.Primaria else MaterialTheme.colorScheme.surface)
