@@ -61,7 +61,9 @@ class DashboardViewModel(
         carregar()
     }
 
+    /** So por acao explicita da lideranca; um segundo toque enquanto a IA responde e ignorado (cada pedido gasta cota). */
     fun gerarInsights() {
+        if (_insights.value == Estado.Carregando) return
         viewModelScope.launch {
             _insights.value = Estado.Carregando
             _insights.value = ia.insights().paraEstado()

@@ -26,6 +26,7 @@ import br.com.fiap.aguiainova.domain.repository.EstrategiaRepository
 import br.com.fiap.aguiainova.domain.repository.IaRepository
 import br.com.fiap.aguiainova.ui.common.Estado
 import br.com.fiap.aguiainova.ui.support.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -105,6 +106,19 @@ class DashboardViewModelTest {
         assertEquals(1, ia.pedidosDeInsights)
     }
 
+    @Test
+    fun `segundo pedido de insights durante a geracao e ignorado`() {
+        ia.insightsSuspenso = CompletableDeferred()
+        val vm = criarVm().also { it.carregar() }
+
+        vm.gerarInsights()
+        vm.gerarInsights()
+
+        assertEquals(1, ia.pedidosDeInsights)
+        ia.insightsSuspenso?.complete(Resultado.Sucesso(InsightsIa("ok", fonte = "GEMINI")))
+        assertTrue(vm.insights.value is Estado.Pronto)
+    }
+
     private class FakeDashboard : DashboardRepository {
         var resumo: Resultado<ResumoDashboard> = Resultado.Sucesso(
             ResumoDashboard(
@@ -159,10 +173,11 @@ class DashboardViewModelTest {
 
     private class FakeIa : IaRepository {
         var pedidosDeInsights = 0
+        var insightsSuspenso: CompletableDeferred<Resultado<InsightsIa>>? = null
 
         override suspend fun insights(): Resultado<InsightsIa> {
             pedidosDeInsights++
-            return naoUsado()
+            return insightsSuspenso?.await() ?: naoUsado()
         }
 
         override suspend fun status() = naoUsado<StatusIa>()

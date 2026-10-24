@@ -2,13 +2,16 @@ package br.com.fiap.aguiainova.ui.ia
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import br.com.fiap.aguiainova.domain.model.StatusIa
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,6 +49,8 @@ fun ConteudoAssistente(vm: AssistenteViewModel, modifier: Modifier = Modifier) {
     val mensagens by vm.mensagens.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
     val ocupado by vm.ocupado.collectAsStateWithLifecycle()
+    val statusVerificado by vm.statusVerificado.collectAsStateWithLifecycle()
+    val porRegras by vm.respostasPorRegras.collectAsStateWithLifecycle()
     var texto by rememberSaveable { mutableStateOf("") }
     val lista = rememberLazyListState()
     LaunchedEffect(Unit) { vm.carregarStatus() }
@@ -53,17 +58,16 @@ fun ConteudoAssistente(vm: AssistenteViewModel, modifier: Modifier = Modifier) {
     val disponivel = status?.disponivel != false
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        status?.let {
-            Selo(
-                if (it.disponivel) "IA conectada · ${it.provedor.lowercase()} (${it.modelo})" else "IA não configurada no servidor",
-                if (it.disponivel) AguiaCores.Sucesso else AguiaCores.Alerta
-            )
-        }
+        SeloDeStatus(status, statusVerificado)
         LazyColumn(state = lista, modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (mensagens.isEmpty()) {
-                item { Sugestoes(habilitadas = disponivel && !ocupado, aoEscolher = vm::enviar) }
+                item {
+                    // Sem provedor de IA as perguntas prontas ficariam desabilitadas sob um "toque em uma": explica o porque.
+                    if (status?.disponivel == false) SemIaConfigurada()
+                    else Sugestoes(habilitadas = disponivel && !ocupado, aoEscolher = vm::enviar)
+                }
             }
-            items(mensagens) { Balao(it) }
+            itemsIndexed(mensagens) { posicao, mensagem -> Balao(mensagem, porRegras = posicao in porRegras) }
             if (ocupado) item { CircularProgressIndicator(Modifier.padding(8.dp)) }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -78,6 +82,15 @@ fun ConteudoAssistente(vm: AssistenteViewModel, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Composable
+internal fun SemIaConfigurada() {
+    Text(
+        "O assistente precisa de um provedor de IA configurado no servidor. Enquanto isso, a avaliação das ideias e " +
+            "os insights do painel continuam funcionando por regras.",
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 /** Perguntas prontas: quem nao sabe o que perguntar toca em uma e ja ve a IA trabalhando com os dados da empresa. */
@@ -98,19 +111,55 @@ private fun Sugestoes(habilitadas: Boolean, aoEscolher: (String) -> Unit) {
     }
 }
 
+/** Enquanto o status nao chega nada e dito como "conectado"; se a consulta falhar, o selo diz que nao deu para saber. */
 @Composable
-private fun Balao(mensagem: MensagemChat) {
-    val doUsuario = mensagem.papel == PapelMensagem.USUARIO
-    Box(Modifier.fillMaxWidth(), contentAlignment = if (doUsuario) Alignment.CenterEnd else Alignment.CenterStart) {
-        Text(
-            mensagem.texto,
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (doUsuario) AguiaCores.Primaria else MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 14.dp, vertical = 10.dp)
-        )
+internal fun SeloDeStatus(status: StatusIa?, verificado: Boolean) {
+    when {
+        status?.disponivel == true -> Selo("IA conectada · ${status.provedor.lowercase()} (${status.modelo})", AguiaCores.Sucesso)
+        status != null -> Selo("IA não configurada no servidor", AguiaCores.Alerta)
+        verificado -> Selo("Não foi possível verificar a IA", MaterialTheme.colorScheme.onSurfaceVariant)
+        else -> Selo("Verificando a IA…", MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/**
+ * Uma mensagem. Quem falou e dito pelo alinhamento, pela cor e tambem pela semantica ("Você:"/"Assistente:"),
+ * para o leitor de tela. O texto nao tem limite de linhas: resposta longa e lida inteira rolando a conversa.
+ */
+@Composable
+internal fun Balao(mensagem: MensagemChat, porRegras: Boolean = false) {
+    val doUsuario = mensagem.papel == PapelMensagem.USUARIO
+    val cores = MaterialTheme.colorScheme
+    Column(
+        Modifier.fillMaxWidth().semantics(mergeDescendants = true) {
+            contentDescription = (if (doUsuario) "Você: " else "Assistente: ") + mensagem.texto +
+                if (porRegras) " (leitura por regras, sem IA generativa)" else ""
+        },
+        horizontalAlignment = if (doUsuario) Alignment.End else Alignment.Start
+    ) {
+        Text(
+            mensagem.texto,
+            // Par on* do tema: onPrimary (escuro) sobre o azul da primaria; a cor padrao (clara) ficava ilegivel.
+            color = if (doUsuario) cores.onPrimary else cores.onSurface,
+            modifier = Modifier
+                .fillMaxWidth(LARGURA_MAXIMA_DO_BALAO)
+                .wrapContentWidth(if (doUsuario) Alignment.End else Alignment.Start)
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (doUsuario) cores.primary else cores.surfaceContainer)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        )
+        if (porRegras) {
+            Text(
+                "Leitura por regras (IA indisponível)",
+                style = MaterialTheme.typography.labelSmall,
+                color = cores.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, start = 4.dp)
+            )
+        }
+    }
+}
+
+private const val LARGURA_MAXIMA_DO_BALAO = 0.85f
 
 private val PERGUNTAS_SUGERIDAS = listOf(
     "Qual estratégia está mais em risco e o que devo fazer primeiro?",
