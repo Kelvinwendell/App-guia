@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,7 +81,7 @@ fun TelaBase(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
         ) {
             Cabecalho(titulo, subtitulo, aoVoltar, acoes)
             conteudo(Modifier.weight(1f).fillMaxWidth())
@@ -99,7 +99,7 @@ private fun Cabecalho(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 12.dp),
+            .padding(top = 24.dp, bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (aoVoltar != null) {
@@ -110,7 +110,12 @@ private fun Cabecalho(
         Column(Modifier.weight(1f)) {
             Text(titulo, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             if (subtitulo != null) {
-                Text(subtitulo, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    subtitulo,
+                    modifier = Modifier.padding(top = 6.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         acoes()
@@ -142,10 +147,22 @@ fun <T> ConteudoDoEstado(
     }
 }
 
+/** [acaoTexto]/[aoAcao] so aparecem juntos: uma acao opcional (ex.: "Criar a primeira ideia"). */
 @Composable
-fun MensagemVazia(texto: String, modifier: Modifier = Modifier) {
+fun MensagemVazia(
+    texto: String,
+    modifier: Modifier = Modifier,
+    acaoTexto: String? = null,
+    aoAcao: (() -> Unit)? = null
+) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(texto, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(texto, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (acaoTexto != null && aoAcao != null) {
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = aoAcao) { Text(acaoTexto) }
+            }
+        }
     }
 }
 
@@ -153,12 +170,12 @@ private data class ItemBarra(val rota: String, val rotulo: String, val icone: Im
 
 /** Abas de cada perfil: a barra e a mesma; o que muda e a lista de itens (dados, nao codigo duplicado). */
 private fun itensDe(perfil: Perfil): List<ItemBarra> {
-    val home = ItemBarra(Rotas.homeDe(perfil), "Home", Icons.Default.Home)
-    val ideias = ItemBarra(Rotas.IDEIAS, "Ideias", Icons.Default.Lightbulb)
-    val estrategias = ItemBarra(Rotas.ESTRATEGIAS, "Estratégias", Icons.AutoMirrored.Filled.ShowChart)
-    val projetos = ItemBarra(Rotas.PROJETOS, "Projetos", Icons.Default.Work)
-    val dashboard = ItemBarra(Rotas.DASHBOARD, "Dashboard", Icons.Default.BarChart)
-    val perfilAba = ItemBarra(Rotas.PERFIL, "Perfil", Icons.Default.Person)
+    val home = ItemBarra(Rotas.homeDe(perfil), "Home", Icons.Outlined.Home)
+    val ideias = ItemBarra(Rotas.IDEIAS, "Ideias", Icons.Outlined.Lightbulb)
+    val estrategias = ItemBarra(Rotas.ESTRATEGIAS, "Estratégias", Icons.AutoMirrored.Outlined.ShowChart)
+    val projetos = ItemBarra(Rotas.PROJETOS, "Projetos", Icons.Outlined.Work)
+    val dashboard = ItemBarra(Rotas.DASHBOARD, "Dashboard", Icons.Outlined.BarChart)
+    val perfilAba = ItemBarra(Rotas.PERFIL, "Perfil", Icons.Outlined.Person)
     return when (perfil) {
         Perfil.OPERADOR -> listOf(home, ideias, estrategias, perfilAba)
         Perfil.GESTOR -> listOf(home, ideias, projetos, estrategias, perfilAba)
@@ -169,17 +186,17 @@ private fun itensDe(perfil: Perfil): List<ItemBarra> {
 @Composable
 fun BarraInferior(perfil: Perfil, navController: NavController) {
     val rotaAtual = navController.currentBackStackEntryAsState().value?.destination?.route
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
         itensDe(perfil).forEach { item ->
             NavigationBarItem(
                 selected = rotaAtual == item.rota,
                 onClick = { navController.irParaAba(item.rota, perfil) },
                 icon = { Icon(item.icone, contentDescription = item.rotulo) },
-                label = { Text(item.rotulo) },
+                label = { Text(item.rotulo, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = AguiaCores.Primaria,
                     selectedTextColor = AguiaCores.Primaria,
-                    indicatorColor = MaterialTheme.colorScheme.background,
+                    indicatorColor = AguiaCores.Primaria.copy(alpha = 0.12f),
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
