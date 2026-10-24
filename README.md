@@ -70,6 +70,29 @@ build de release essa opção fica escondida (trocar de servidor em produção s
   ```
 - HTTP sem TLS só é permitido nos builds de *debug* (`app/src/debug/AndroidManifest.xml`). Em produção use HTTPS.
 
+#### Publicar um APK assinado (sem Play Store)
+
+A Google Play Console cobra uma taxa única de US$25 — evitável para distribuição direta via GitHub Releases.
+
+1. Gere sua própria keystore (guarde o `.jks` e a senha **fora do repositório**, nunca commitados):
+   ```bash
+   keytool -genkeypair -v -keystore aguia-inova-release.jks -alias aguia-inova \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+2. Builde o APK assinado, apontando para a API real:
+   ```bash
+   cd mobile
+   export RELEASE_KEYSTORE_PATH="/caminho/para/aguia-inova-release.jks"
+   export KEYSTORE_PASSWORD="sua-senha-da-keystore"
+   export KEY_ALIAS="aguia-inova"
+   export KEY_PASSWORD="sua-senha-da-keystore"
+   ./gradlew assembleRelease -PapiBaseUrl=https://app-guia.onrender.com/
+   # -> app/build/outputs/apk/release/app-release.apk
+   ```
+   (sem essas variáveis definidas, o build de release continua funcionando, só sai sem assinatura)
+3. GitHub → `Releases` → `Draft a new release` → anexe o `.apk` → publique. Alternativa com
+   atualização mais fácil para testadores: [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) (grátis).
+
 ### 3. Testar
 
 ```bash
