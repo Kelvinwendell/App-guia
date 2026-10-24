@@ -1,60 +1,50 @@
 package br.com.fiap.aguiainova.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 private val EsquemaEscuro = darkColorScheme(
     primary = AguiaCores.Primaria,
-    onPrimary = Color.White,
+    onPrimary = AguiaCores.Fundo,
+    primaryContainer = AguiaCores.SuperficieElevada,
+    onPrimaryContainer = AguiaCores.Primaria,
     secondary = AguiaCores.Sucesso,
     onSecondary = Color.Black,
     tertiary = AguiaCores.Alerta,
-    background = NeutrosEscuro.Fundo,
+    background = AguiaCores.Fundo,
     onBackground = Color.White,
-    surface = NeutrosEscuro.Superficie,
+    surface = AguiaCores.Superficie,
+    surfaceContainerLowest = AguiaCores.Fundo,
+    surfaceContainerLow = AguiaCores.Superficie,
+    surfaceContainer = AguiaCores.Superficie,
+    surfaceContainerHigh = AguiaCores.SuperficieElevada,
+    surfaceContainerHighest = AguiaCores.SuperficieElevada,
     onSurface = Color.White,
-    surfaceVariant = NeutrosEscuro.SuperficieElevada,
-    onSurfaceVariant = NeutrosEscuro.TextoSecundario,
-    outline = NeutrosEscuro.Borda,
+    surfaceVariant = AguiaCores.SuperficieElevada,
+    onSurfaceVariant = AguiaCores.TextoSecundario,
+    outline = AguiaCores.Borda,
+    outlineVariant = AguiaCores.Borda.copy(alpha = 0.55f),
     error = AguiaCores.Erro,
-    onError = Color.White
+    onError = AguiaCores.Fundo
 )
 
-private val EsquemaClaro = lightColorScheme(
-    primary = AguiaCores.Primaria,
-    onPrimary = Color.White,
-    secondary = AguiaCores.Sucesso,
-    onSecondary = Color.White,
-    tertiary = AguiaCores.Alerta,
-    background = NeutrosClaro.Fundo,
-    onBackground = Color(0xFF14161C),
-    surface = NeutrosClaro.Superficie,
-    onSurface = Color(0xFF14161C),
-    surfaceVariant = NeutrosClaro.SuperficieElevada,
-    onSurfaceVariant = NeutrosClaro.TextoSecundario,
-    outline = NeutrosClaro.Borda,
-    error = AguiaCores.Erro,
-    onError = Color.White
-)
-
-/**
- * Tema do app: segue o tema do sistema (claro/escuro) por padrao. [escuroForcado] permite travar um
- * dos dois modos quando necessario (ex.: previews).
- */
 @Composable
-fun AguiaTheme(
-    escuroForcado: Boolean? = null,
-    conteudo: @Composable () -> Unit
-) {
-    val usarEscuro = escuroForcado ?: isSystemInDarkTheme()
+fun AguiaTheme(conteudo: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = if (usarEscuro) EsquemaEscuro else EsquemaClaro,
+        colorScheme = EsquemaEscuro,
         typography = Typography,
-        shapes = AguiaShapes,
+        shapes = Shapes(
+            extraSmall = RoundedCornerShape(4.dp),
+            small = RoundedCornerShape(8.dp),
+            medium = RoundedCornerShape(12.dp),
+            large = RoundedCornerShape(16.dp),
+            extraLarge = RoundedCornerShape(28.dp)
+        ),
         content = conteudo
     )
 }
