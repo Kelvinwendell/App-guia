@@ -4,6 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -25,6 +35,7 @@ import br.com.fiap.aguiainova.ui.common.viewModelDoApp
 import br.com.fiap.aguiainova.ui.components.BotaoPrimario
 import br.com.fiap.aguiainova.ui.components.CampoTexto
 import br.com.fiap.aguiainova.ui.components.TelaBase
+import br.com.fiap.aguiainova.ui.theme.AguiaCores
 
 @Composable
 fun LoginScreen(aoEntrar: (Perfil) -> Unit, aoCriarConta: () -> Unit) {
@@ -46,7 +57,20 @@ fun LoginScreen(aoEntrar: (Perfil) -> Unit, aoCriarConta: () -> Unit) {
             modificador.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
+            Box(
+                Modifier.size(64.dp).clip(RoundedCornerShape(20.dp)).background(AguiaCores.Primaria.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = AguiaCores.Primaria, modifier = Modifier.size(32.dp))
+            }
+            Text("Grandes mudanças começam com uma ideia.", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                "Entre para conectar ideias, acompanhar projetos e transformar resultados.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
             CampoTexto(email, { email = it }, "E-mail", teclado = KeyboardType.Email)
             CampoTexto(senha, { senha = it }, "Senha", senha = true)
             Spacer(Modifier.height(4.dp))

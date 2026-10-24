@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -47,6 +46,7 @@ fun CampoTexto(
         onValueChange = aoMudar,
         label = { Text(rotulo) },
         modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
         singleLine = linhas == 1,
         minLines = linhas,
         enabled = habilitado,
@@ -74,7 +74,7 @@ fun <T> Seletor(
         OutlinedButton(
             onClick = { aberto = true },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.weight(1f)) {
                 Text(rotulo, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -105,10 +105,10 @@ fun BotaoPrimario(
         onClick = aoClicar,
         enabled = habilitado && !carregando,
         modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(14.dp)
+        shape = RoundedCornerShape(50)
     ) {
         if (carregando) {
-            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
+            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
         } else {
             Text(texto)
         }

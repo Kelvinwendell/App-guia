@@ -1,6 +1,9 @@
 package br.com.fiap.aguiainova.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,8 +40,8 @@ fun CartaoAguia(
     aoClicar: (() -> Unit)? = null,
     conteudo: @Composable () -> Unit
 ) {
-    val cores = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    val forma = RoundedCornerShape(20.dp)
+    val cores = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    val forma = MaterialTheme.shapes.medium
     if (aoClicar != null) {
         Card(onClick = aoClicar, modifier = modifier.fillMaxWidth(), colors = cores, shape = forma) { conteudo() }
     } else {
@@ -55,11 +58,12 @@ fun CartaoIndicador(
     modifier: Modifier = Modifier
 ) {
     CartaoAguia(modifier) {
-        Column(Modifier.padding(18.dp)) {
-            Box(Modifier.size(14.dp).clip(CircleShape).background(cor))
-            Spacer(Modifier.height(12.dp))
-            Text(titulo, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
+        Column(Modifier.padding(16.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(6.dp).clip(CircleShape).background(cor))
+                Text(titulo, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(8.dp))
             Text(valor, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         }
     }
@@ -71,21 +75,30 @@ fun CartaoAcao(
     titulo: String,
     subtitulo: String,
     icone: ImageVector,
+    destaque: Boolean = false,
     aoClicar: () -> Unit
 ) {
-    CartaoAguia(aoClicar = aoClicar) {
-        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+    Card(
+        onClick = aoClicar,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = if (destaque) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer),
+        border = if (destaque) BorderStroke(1.dp, AguiaCores.Primaria.copy(alpha = 0.25f)) else null
+    ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(AguiaCores.Primaria),
+                Modifier.size(40.dp).clip(CircleShape).background(AguiaCores.Primaria.copy(alpha = if (destaque) 1f else 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icone, contentDescription = null, tint = Color.White)
+                Icon(icone, contentDescription = null, tint = if (destaque) AguiaCores.Fundo else AguiaCores.Primaria)
             }
             Spacer(Modifier.width(16.dp))
-            Column {
-                Text(titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(subtitulo, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(titulo, style = MaterialTheme.typography.titleMedium)
+                Text(subtitulo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Spacer(Modifier.width(8.dp))
+            Icon(Icons.Outlined.ChevronRight, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -131,7 +144,7 @@ fun BarraProgresso(progresso: Int, modifier: Modifier = Modifier) {
 fun TituloSecao(texto: String, modifier: Modifier = Modifier) {
     Text(
         texto,
-        modifier = modifier.padding(top = 20.dp, bottom = 10.dp),
+        modifier = modifier.padding(top = 12.dp, bottom = 2.dp),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold
     )
