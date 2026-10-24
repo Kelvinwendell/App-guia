@@ -26,6 +26,7 @@ import br.com.fiap.aguiainova.ui.common.viewModelDoApp
 import br.com.fiap.aguiainova.ui.components.BotaoPrimario
 import br.com.fiap.aguiainova.ui.components.CampoTexto
 import br.com.fiap.aguiainova.ui.components.TelaBase
+import br.com.fiap.aguiainova.ui.components.TituloSecao
 
 @Composable
 fun RegistroScreen(aoConcluir: () -> Unit, aoVoltar: () -> Unit) {
@@ -50,13 +51,20 @@ fun RegistroScreen(aoConcluir: () -> Unit, aoVoltar: () -> Unit) {
             modificador.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            TituloSecao("Dados de acesso")
             CampoTexto(nome, { nome = it }, "Nome")
             CampoTexto(email, { email = it }, "E-mail", teclado = KeyboardType.Email)
             CampoTexto(senha, { senha = it }, "Senha", senha = true, dica = "Mínimo de 6 caracteres")
+            TituloSecao("Dados profissionais")
             CampoTexto(cargo, { cargo = it }, "Cargo")
             CampoTexto(departamento, { departamento = it }, "Departamento")
             CampoTexto(unidade, { unidade = it }, "Unidade")
-            Text("Perfil", style = MaterialTheme.typography.titleMedium)
+            TituloSecao("Perfil")
+            Text(
+                "O servidor define o acesso realmente concedido; esta escolha é um ponto de partida.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Perfil.entries.forEach { opcao ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = perfil == opcao, onClick = { perfil = opcao })
