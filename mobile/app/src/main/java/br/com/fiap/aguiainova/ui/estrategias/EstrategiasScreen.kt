@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -39,6 +40,8 @@ import br.com.fiap.aguiainova.ui.components.AbasDaTela
 import br.com.fiap.aguiainova.ui.components.CartaoAguia
 import br.com.fiap.aguiainova.ui.components.ConteudoDoEstado
 import br.com.fiap.aguiainova.ui.components.EstadoVazio
+import br.com.fiap.aguiainova.ui.components.LinhaQuebravel
+import br.com.fiap.aguiainova.ui.components.MostrarNovoNoTopo
 import br.com.fiap.aguiainova.ui.components.Selo
 import br.com.fiap.aguiainova.ui.components.TelaBase
 import br.com.fiap.aguiainova.ui.ia.AssistenteViewModel
@@ -132,7 +135,7 @@ fun EstrategiasScreen(perfil: Perfil, navController: NavController, abaInicial: 
 }
 
 @Composable
-private fun ListaDeEstrategias(
+internal fun ListaDeEstrategias(
     estado: Estado<PainelEstrategias>,
     vigentes: Boolean,
     perfil: Perfil,
@@ -146,7 +149,10 @@ private fun ListaDeEstrategias(
         if (lista.isEmpty()) {
             SemEstrategias(vigentes, perfil, aoCriar)
         } else {
+            val posicao = rememberLazyListState()
+            MostrarNovoNoTopo(posicao, lista.first().id)
             LazyColumn(
+                state = posicao,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp)
             ) {
@@ -186,7 +192,7 @@ private fun SemEstrategias(vigentes: Boolean, perfil: Perfil, aoCriar: () -> Uni
 /** "2 em dia · 1 em risco": o retrato da carteira de estrategias antes de olhar uma a uma. */
 @Composable
 private fun ResumoDeSaude(contagem: Map<NivelSaude, Int>) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LinhaQuebravel {
         NivelSaude.entries.filter { (contagem[it] ?: 0) > 0 }.forEach { nivel ->
             Selo("${contagem[nivel]} ${nivel.rotulo.lowercase()}", nivel.cor())
         }
@@ -212,7 +218,7 @@ private fun CartaoEstrategia(estrategia: Estrategia, saude: SaudeEstrategia?, ao
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinhaQuebravel {
                 Selo(estrategia.categoria, AguiaCores.Primaria)
                 estrategia.campanha?.let { Selo(it, AguiaCores.Alerta) }
             }
