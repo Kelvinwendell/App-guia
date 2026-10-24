@@ -1,6 +1,7 @@
 package br.com.fiap.aguiainova.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -34,6 +35,15 @@ public class SecurityConfig {
 
     private static final int TAMANHO_MINIMO_SEGREDO_BYTES = 32;
 
+    /**
+     * Valores-padrão documentados no repositório (application.yml, docker-compose.yml). Se o
+     * segredo configurado for igual a um destes, a aplicação não deve subir: significa que
+     * ninguém definiu JWT_SECRET de verdade, e esses valores são públicos no GitHub.
+     */
+    private static final Set<String> SEGREDOS_PADRAO_PROIBIDOS = Set.of(
+            "aguia-inova-dev-secret-troque-em-producao-0123456789",
+            "dev-only-secret-troque-em-producao-min-32-bytes!");
+
     @Bean
     SecurityFilterChain filtros(HttpSecurity http, UsuarioJwtConverter conversor,
             ApiSecurityErrorHandler erros) throws Exception {
@@ -60,7 +70,13 @@ public class SecurityConfig {
 
     @Bean
     SecretKey chaveJwt(AppProperties props) {
-        byte[] segredo = props.jwt().secret().getBytes(StandardCharsets.UTF_8);
+        String segredoTexto = props.jwt().secret();
+        if (SEGREDOS_PADRAO_PROIBIDOS.contains(segredoTexto)) {
+            throw new IllegalStateException(
+                    "app.jwt.secret (JWT_SECRET) está usando um valor-padrão público do repositório. "
+                            + "Defina um segredo próprio, por exemplo com: openssl rand -base64 48");
+        }
+        byte[] segredo = segredoTexto.getBytes(StandardCharsets.UTF_8);
         if (segredo.length < TAMANHO_MINIMO_SEGREDO_BYTES) {
             throw new IllegalStateException("app.jwt.secret (JWT_SECRET) precisa ter no mínimo "
                     + TAMANHO_MINIMO_SEGREDO_BYTES + " bytes para HS256.");

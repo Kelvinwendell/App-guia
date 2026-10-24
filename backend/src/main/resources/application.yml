@@ -37,8 +37,10 @@ app:
     # false = todo cadastro publico vira OPERADOR e so a LIDERANCA promove usuarios.
     allow-role-selection: ${APP_ALLOW_ROLE_SELECTION:true}
   seed:
-    # Cria usuarios de teste e dados de exemplo quando o banco esta vazio.
-    enabled: ${APP_SEED_ENABLED:true}
+    # Cria usuarios de teste e dados de exemplo quando o banco esta vazio. Padrao false
+    # (fail-safe): esquecer esta variavel em producao nao pode, por si so, criar contas de
+    # senha conhecida. O docker-compose.yml de desenvolvimento liga isso explicitamente.
+    enabled: ${APP_SEED_ENABLED:false}
   ai:
     enabled: ${AI_ENABLED:true}
     # gemini = Google Gemini API | openai = qualquer API compativel com OpenAI (OpenRouter, GitHub Models...)

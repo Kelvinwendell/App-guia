@@ -111,4 +111,21 @@ class SecurityConfigTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("32 bytes");
     }
+
+    @Test
+    void segredoPadraoConhecidoImpedeAInicializacao() {
+        AppProperties comSegredoPadraoDoApplicationYml = new AppProperties(
+                new AppProperties.Jwt("aguia-inova-dev-secret-troque-em-producao-0123456789", 60, "x"),
+                props.security(), props.seed(), props.ai());
+        AppProperties comSegredoPadraoDoDockerCompose = new AppProperties(
+                new AppProperties.Jwt("dev-only-secret-troque-em-producao-min-32-bytes!", 60, "x"),
+                props.security(), props.seed(), props.ai());
+
+        assertThatThrownBy(() -> config.chaveJwt(comSegredoPadraoDoApplicationYml))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("padrão");
+        assertThatThrownBy(() -> config.chaveJwt(comSegredoPadraoDoDockerCompose))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("padrão");
+    }
 }

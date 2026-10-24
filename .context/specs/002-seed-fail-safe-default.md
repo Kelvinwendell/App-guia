@@ -1,7 +1,7 @@
 # SPEC-002: Seed de dados de teste deve ser "fail-safe" por padrão
 
 ## Status
-PENDING
+DONE
 
 ## Prioridade
 CRÍTICO
@@ -37,4 +37,16 @@ segurança sozinho.
    `docker compose up` (ambiente de dev) ainda semeia (smoke test já feito antes nesta sessão).
 
 ## Resultado
-(preencher ao final do ciclo TDD, com números reais de execução)
+RED confirmado: `DataSeederDesabilitadoPorPadraoIT` (criado para a SPEC-001, reaproveitado
+aqui) falhava com `dataSeeder` presente no contexto mesmo sem configuração explícita.
+GREEN: trocado `APP_SEED_ENABLED:true` → `APP_SEED_ENABLED:false` em
+`application.yml:41` (também replicado no `application.yml` de teste, que não funde com o
+principal — ver nota na SPEC-001). `docker-compose.yml` continua com
+`APP_SEED_ENABLED: ${APP_SEED_ENABLED:-true}` — ambiente de dev não muda.
+
+Suíte completa: 260/260 verdes.
+
+Validado manualmente fora dos testes: banco limpo, API subida só com `MONGODB_URI` e
+`JWT_SECRET` (sem `APP_SEED_ENABLED`) → zero usuários criados, login com as contas conhecidas
+(`vinicius@gmail.com`/`123456`) retorna 401. Comportamento fail-safe confirmado na prática,
+não só no teste.

@@ -1,7 +1,7 @@
 # SPEC-001: Falhar ao iniciar se JWT_SECRET for o valor-padrão
 
 ## Status
-PENDING
+DONE
 
 ## Prioridade
 CRÍTICO
@@ -32,4 +32,19 @@ qualquer pessoa pode forjar um token de Liderança.
 3. **REGRESSÃO**: `./mvnw -Dmaven.compiler.release=21 test` — suíte completa verde.
 
 ## Resultado
-(preencher ao final do ciclo TDD, com números reais de execução — não antecipar)
+Implementado em `SecurityConfig.java`: constante `SEGREDOS_PADRAO_PROIBIDOS` (Set com os dois
+valores-padrão conhecidos de `application.yml` e `docker-compose.yml`) checada em
+`chaveJwt()` antes da checagem de tamanho. Teste novo:
+`SecurityConfigTest.segredoPadraoConhecidoImpedeAInicializacao` (RED confirmado antes da
+implementação, GREEN depois).
+
+**Efeito colateral encontrado e corrigido durante a REGRESSÃO**: todo `@SpringBootTest` que
+não definia `JWT_SECRET` explicitamente dependia do valor-padrão de desenvolvimento — agora
+proibido — e passou a falhar ao subir o contexto (179 erros na primeira rodada de regressão).
+Corrigido criando `backend/src/test/resources/application.yml` (sobrepõe o principal para
+testes, com o mesmo segredo de teste já usado em `Dados.SEGREDO_JWT`). Spring Boot não funde
+dois `application.yml` do mesmo nome em classpaths diferentes — carrega só o primeiro — então
+esse arquivo precisou replicar todas as chaves do original, não só a que mudou.
+
+Suíte completa após a correção: 259/260 verdes (a 1 falha restante é o RED intencional da
+SPEC-002, ainda não implementada nesse momento).
