@@ -2,6 +2,7 @@ package br.com.fiap.aguiainova.core.network
 
 import com.google.gson.JsonParser
 import java.io.IOException
+import java.net.SocketTimeoutException
 import retrofit2.HttpException
 
 /**
@@ -12,6 +13,10 @@ class LeitorDeErroApi {
 
     fun traduzir(erro: Throwable): Resultado.Falha = when (erro) {
         is HttpException -> falhaHttp(erro)
+        is SocketTimeoutException -> Resultado.Falha(
+            TipoErro.REDE,
+            "O servidor está acordando e demorou a responder. Aguarde alguns segundos e tente novamente."
+        )
         is IOException -> Resultado.Falha(
             TipoErro.REDE,
             "Sem conexão com o servidor. Verifique a internet e o endereço do servidor."

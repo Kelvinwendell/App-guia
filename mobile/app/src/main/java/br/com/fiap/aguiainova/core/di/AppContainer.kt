@@ -26,6 +26,11 @@ import br.com.fiap.aguiainova.domain.repository.EstrategiaRepository
 import br.com.fiap.aguiainova.domain.repository.IaRepository
 import br.com.fiap.aguiainova.domain.repository.IdeiaRepository
 import br.com.fiap.aguiainova.domain.repository.ProjetoRepository
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 /**
  * Raiz de composicao: cria (uma vez) e conecta as pecas do app. Injecao de dependencia manual, suficiente para o
@@ -58,4 +63,18 @@ class AppContainer(context: Context) {
         DashboardRepositoryRemoto(apiClient.criar(DashboardApi::class.java), leitorDeErro)
 
     val ia: IaRepository = IaRepositoryRemoto(apiClient.criar(IaApi::class.java), leitorDeErro)
+
+    /**
+     * Dispara um health check em segundo plano ao abrir o app, para acordar a API (hospedagem gratuita hiberna) enquanto
+     * o usuario ainda esta na tela de login. Falhas sao ignoradas: e apenas um aquecimento.
+     */
+    fun aquecerServidor() {
+        val url = servidor.urlBase().toHttpUrlOrNull()?.newBuilder()?.addPathSegments("actuator/health")?.build() ?: return
+        thread(isDaemon = true) {
+            runCatching {
+                val cliente = OkHttpClient.Builder().callTimeout(120, TimeUnit.SECONDS).build()
+                cliente.newCall(Request.Builder().url(url).build()).execute().close()
+            }
+        }
+    }
 }

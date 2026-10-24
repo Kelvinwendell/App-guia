@@ -1,0 +1,15 @@
+name: Keep alive
+
+# O plano gratuito do Render hiberna a API apos ~15 min sem trafego. Um ping a cada 10 min evita a hibernacao
+# e a espera de 1-2 min na primeira chamada.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check da API
+        run: curl --fail --silent --show-error --max-time 120 --retry 3 --retry-delay 15 https://app-guia.onrender.com/actuator/health
