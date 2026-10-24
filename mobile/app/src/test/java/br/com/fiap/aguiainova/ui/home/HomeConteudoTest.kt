@@ -35,7 +35,8 @@ class HomeConteudoTest {
             }
         }
 
-        compose.onNodeWithText("Minhas ideias").assertIsDisplayed()
+        // "Minhas ideias" tambem e o rotulo do indicador; o subtitulo identifica o cartao de acao.
+        compose.onNodeWithText("Cadastre e acompanhe o status").assertIsDisplayed()
         compose.onNodeWithText("Estratégia da empresa").assertIsDisplayed()
         compose.onAllNodesWithText("Assistente de IA").assertCountEquals(0)
         compose.onAllNodesWithText("Criar projeto").assertCountEquals(0)
@@ -54,7 +55,7 @@ class HomeConteudoTest {
             }
         }
 
-        compose.onNodeWithText("Minhas ideias").performClick()
+        compose.onNodeWithText("Cadastre e acompanhe o status").performClick()
 
         assertEquals(1, chamadas)
     }
@@ -71,11 +72,12 @@ class HomeConteudoTest {
             }
         }
 
-        compose.onNodeWithText("Aprovar ideias").assertIsDisplayed()
-        compose.onNodeWithText("Assistente de IA").assertIsDisplayed()
-        compose.onNodeWithText("Criar projeto").assertIsDisplayed()
-        compose.onNodeWithText("Atualizar progresso").assertIsDisplayed()
-        compose.onNodeWithText("Saúde das estratégias").assertIsDisplayed()
+        // A lista rola: os ultimos cartoes ficam abaixo da dobra no viewport do Robolectric.
+        compose.onNodeWithText("Aprovar ideias").assertExists()
+        compose.onNodeWithText("Assistente de IA").assertExists()
+        compose.onNodeWithText("Criar projeto").assertExists()
+        compose.onNodeWithText("Atualizar progresso").assertExists()
+        compose.onNodeWithText("Saúde das estratégias").assertExists()
     }
 
     @Test
