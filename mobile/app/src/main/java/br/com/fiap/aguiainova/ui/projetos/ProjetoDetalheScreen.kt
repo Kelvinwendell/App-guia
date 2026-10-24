@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,6 +65,7 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
     val gestor = perfil == Perfil.GESTOR
     var registrandoResultado by remember { mutableStateOf(false) }
     var confirmandoExclusao by remember { mutableStateOf(false) }
+    var resultadoParaRemover by remember { mutableStateOf<ResultadoProjeto?>(null) }
 
     TelaBase(
         titulo = "Projeto",
@@ -84,7 +85,7 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
                     Text("Nenhum resultado registrado ainda.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 projeto.resultados.forEach { resultado ->
-                    CartaoResultado(resultado, removivel = gestor) { vm.removerResultado(resultado.id) }
+                    CartaoResultado(resultado, removivel = gestor) { resultadoParaRemover = resultado }
                 }
                 if (gestor) {
                     BotaoPrimario("Adicionar resultado", aoClicar = { registrandoResultado = true })
@@ -110,6 +111,14 @@ fun ProjetoDetalheScreen(projetoId: String, perfil: Perfil, aoVoltar: () -> Unit
             texto = "O projeto e todos os seus resultados serão removidos.",
             aoConfirmar = { confirmandoExclusao = false; vm.excluir(aoVoltar) },
             aoCancelar = { confirmandoExclusao = false }
+        )
+    }
+    resultadoParaRemover?.let { resultado ->
+        DialogoConfirmacao(
+            titulo = "Remover resultado?",
+            texto = "\"${resultado.descricao}\" será removido. Essa ação não pode ser desfeita.",
+            aoConfirmar = { vm.removerResultado(resultado.id); resultadoParaRemover = null },
+            aoCancelar = { resultadoParaRemover = null }
         )
     }
 }
@@ -194,7 +203,7 @@ private fun CartaoResultado(resultado: ResultadoProjeto, removivel: Boolean, aoR
             }
             if (removivel) {
                 IconButton(onClick = aoRemover) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remover resultado", tint = AguiaCores.Erro)
+                    Icon(Icons.Outlined.Delete, contentDescription = "Remover resultado", tint = AguiaCores.Erro)
                 }
             }
         }
