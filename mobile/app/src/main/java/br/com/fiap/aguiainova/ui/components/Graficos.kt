@@ -45,7 +45,7 @@ fun GraficoBarras(
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(MaterialTheme.colorScheme.outline)) {
                     Box(
                         Modifier
-                            .fillMaxWidth((abs(item.valor) / maximo).toFloat().coerceIn(MENOR_FRACAO, 1f))
+                            .fillMaxWidth(fracaoDaBarra(item.valor, maximo))
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(5.dp))
                             .background(cor)
@@ -76,7 +76,7 @@ fun GraficoColunas(
                     Box(
                         Modifier
                             .fillMaxWidth(0.7f)
-                            .fillMaxHeight((abs(item.valor) / maximo).toFloat().coerceIn(MENOR_FRACAO, 1f))
+                            .fillMaxHeight(fracaoDaBarra(item.valor, maximo))
                             .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                             .background(cor)
                     )
@@ -93,6 +93,11 @@ fun GraficoColunas(
         }
     }
 }
+
+/** Fracao visivel da barra: minimo garantido so para valores reais e diferentes de zero,
+ * senao um valor zero fica com barra visivel e parece que ha dado onde nao ha. */
+internal fun fracaoDaBarra(valor: Double, maximo: Double): Float =
+    if (valor == 0.0) 0f else (abs(valor) / maximo).toFloat().coerceIn(MENOR_FRACAO, 1f)
 
 private const val MENOR_FRACAO = 0.02f
 private const val ALTURA_ROTULO = 24
