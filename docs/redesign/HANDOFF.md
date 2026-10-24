@@ -37,22 +37,32 @@ Gerado em 2026-10-24.
    `EncryptedSharedPreferences`/`AndroidKeyStore`) **eager** — Robolectric não
    tem Keystore real e quebra toda a suíte de testes. Tem que ser `by lazy`.
 
-## Status por spec
+## Status por spec (atualizado 24/10/2026, 2ª sessão)
 
 | Spec | Status | Observação |
 |---|---|---|
 | RD-001 Tema dark-only | ✅ Merged | PR #7 |
-| RD-002 Componentes base | ✅ Merged | PR #8 |
+| RD-002 Componentes base | ✅ Merged | PR #8; ajuste da barra inferior vai no PR #17 |
 | RD-003 Autenticação/Perfil | ✅ Merged | PR #10 |
-| RD-004 Homes por perfil | 🟡 PR aberto | PR #13 — extraiu `HomeConteudo.kt`; **verificar CI** antes de considerar fechado |
-| RD-005 Ideias | 🟡 PR aberto | PR #14 — ver detalhe abaixo |
+| RD-004 Homes por perfil | 🟡 PR #13 | CI verde (teste corrigido: texto duplicado e cartões abaixo da dobra) |
+| RD-005 Ideias | 🟡 PR #14 | CI verde |
 | RD-006 Projetos | ✅ Merged | PR #11 |
-| RD-007 Estratégias e histórico | ⬜ Não iniciado | spec já lido nesta sessão (conteúdo no histórico da conversa, não repetido aqui) |
-| RD-008 Dashboard | 🟡 PR aberto (parcial) | PR #15 — **só o bug da barra zero** (`Graficos.kt`/`fracaoDaBarra`); auditoria completa do spec ainda falta |
-| RD-009 Assistente e insights | 🟡 PR aberto (parcial) | PR #16 — **só o contraste do balão do usuário** (`AssistenteIaScreen.kt`, `Balao()`); auditoria completa do spec ainda falta |
-| RD-010 Validação final/fechamento | ⬜ Não iniciado | atualizar tabela de status do `README.md`, confirmar CI verde de todos os PRs (#13–#16), documentar explicitamente que validação visual real (capturas em device/emulador) não pode ser feita neste sandbox — não fingir que foi feito |
+| RD-007 Estratégias e histórico | 🟡 PR #17 | CI verde, validado no emulador |
+| RD-008 Dashboard | 🟡 PR #15 | completo (não mais parcial), validado no emulador |
+| RD-009 Assistente e insights | 🟡 PR #16 | empilhado sobre o #15 (mesclar o #15 antes), validado no emulador sem IA real |
+| RD-010 Fechamento | 🟡 Parcial | `entregas/redesign/RD-010/RELATORIO.md` — falta a matriz completa |
 
-**PRs abertos ao fim desta rodada**: #13 (RD-004), #14 (RD-005), #15 (RD-008 parcial), #16 (RD-009 parcial). Nenhum foi mesclado ainda — verificar CI de cada um antes de mesclar.
+Ordem sugerida de merge: #13 → #14 → #17 → #15 → #16.
+
+## Ambiente local que funciona (Windows desta máquina)
+
+- Gradle falha com `Unable to establish loopback connection` se o temp do sistema não for acessível: exporte
+  `TEMP=C:\gtmp TMP=C:\gtmp JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=C:\gtmp -Djava.io.tmpdir=C:\gtmp"` e
+  `JAVA_HOME` do JBR do Android Studio.
+- API local: MongoDB 7.0 em `C:erramentas\mongodb-win32-x86_64-windows-7.0.14` (`mongod --dbpath C:erramentas\mongo-data`),
+  backend com JDK 25 (`~/.jdks/jdk-25/jdk-25.0.2`) e um `JWT_SECRET` próprio (o valor-padrão público é recusado).
+- Emulador `aguia_test`. O APK de **release** instalado aponta para produção; para testar contra a API local é preciso
+  desinstalar e instalar o **debug** (assinaturas diferentes).
 
 ## RD-005 — estado exato nesta sessão
 

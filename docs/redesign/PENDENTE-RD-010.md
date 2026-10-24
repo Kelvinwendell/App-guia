@@ -19,6 +19,9 @@ estiverem com PR aberto (não precisa estar mesclado, mas precisa existir).
    a realidade: o que foi mesclado, o que está em PR, o que ficou de fora
    (cortes de escopo documentados em cada PR — `IdeiaFormConteudoTest.kt`
    não criado em RD-005, por exemplo).
+> Atualização (24/10/2026): os passos 2 e 3 foram feitos e houve validação real em emulador para RD-007/008/009
+> (`entregas/redesign/RD-010/RELATORIO.md`). O que segue pendente está na seção "Não verificado" do relatório.
+
 4. **Não fingir validação visual.** Este projeto foi trabalhado em sandbox
    sem emulador/device Android real — nenhuma captura de tela, teste manual
    em 360dp/fonte 150%, ou verificação visual de contraste foi feita de
