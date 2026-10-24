@@ -15,6 +15,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import br.com.fiap.aguiainova.config.AppProperties;
 import br.com.fiap.aguiainova.dto.response.DesempenhoEstrategiaResponse;
 import br.com.fiap.aguiainova.dto.response.DesempenhoProjetoResponse;
 import br.com.fiap.aguiainova.dto.response.EvolucaoMensalResponse;
@@ -28,10 +29,9 @@ import br.com.fiap.aguiainova.model.ProjetoMetricas;
 import br.com.fiap.aguiainova.model.enums.EtapaProjeto;
 import br.com.fiap.aguiainova.model.enums.StatusIdeia;
 import br.com.fiap.aguiainova.model.enums.StatusProjeto;
-import br.com.fiap.aguiainova.repository.EstrategiaRepository;
-import br.com.fiap.aguiainova.repository.IdeiaRepository;
-import br.com.fiap.aguiainova.repository.ProjetoRepository;
 import br.com.fiap.aguiainova.util.Consultas;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DashboardService {
 
+    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
     private static final int MAXIMO_PRAZOS_PROXIMOS = 5;
     private static final int CASAS_DECIMAIS = 2;
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
@@ -48,19 +49,29 @@ public class DashboardService {
     private static final String SEM_ESTRATEGIA = "";
     private static final String TITULO_SEM_ESTRATEGIA = "Sem estratégia vinculada";
 
-    private final ProjetoRepository projetos;
-    private final IdeiaRepository ideias;
-    private final EstrategiaRepository estrategias;
     private final MongoTemplate mongo;
     private final Clock clock;
+    private final int limiteRegistrosAgregacao;
 
-    public DashboardService(ProjetoRepository projetos, IdeiaRepository ideias, EstrategiaRepository estrategias,
-            MongoTemplate mongo, Clock clock) {
-        this.projetos = projetos;
-        this.ideias = ideias;
-        this.estrategias = estrategias;
+    public DashboardService(MongoTemplate mongo, Clock clock, AppProperties props) {
         this.mongo = mongo;
         this.clock = clock;
+        this.limiteRegistrosAgregacao = props.dashboard().limiteRegistrosAgregacao();
+    }
+
+    /**
+     * Le no maximo o limite configurado de documentos da colecao, para o dashboard nunca carregar uma colecao
+     * inteira na memoria. Acima do limite os totais deixam de refletir 100% dos dados - avisa no log para isso
+     * nao passar despercebido enquanto o volume real ainda nao justifica reescrever como agregacao no banco.
+     */
+    private <T> List<T> todosComLimiteDeSeguranca(Class<T> tipo, String colecao) {
+        List<T> lista = mongo.find(new Query().limit(limiteRegistrosAgregacao), tipo);
+        if (lista.size() >= limiteRegistrosAgregacao) {
+            log.warn("Dashboard: coleção '{}' tem {} ou mais documentos: leitura truncada em {} "
+                    + "(app.dashboard.limite-registros-agregacao). Os totais não refletem 100% dos dados.",
+                    colecao, limiteRegistrosAgregacao, limiteRegistrosAgregacao);
+        }
+        return lista;
     }
 
     public ResumoDashboardResponse resumo(String estrategiaId, String projetoId) {
@@ -81,13 +92,14 @@ public class DashboardService {
 
     /** Uma linha por estrategia (mesmo sem projetos) mais, se houver, o grupo "sem estrategia vinculada". */
     public List<DesempenhoEstrategiaResponse> porEstrategia() {
-        Map<String, List<Projeto>> projetosPorEstrategia = semCancelados(projetos.findAll()).stream()
+        Map<String, List<Projeto>> projetosPorEstrategia = semCancelados(
+                todosComLimiteDeSeguranca(Projeto.class, "projetos")).stream()
                 .collect(Collectors.groupingBy(p -> chaveDe(p.getEstrategiaId())));
-        Map<String, Long> ideiasPorEstrategia = ideias.findAll().stream()
+        Map<String, Long> ideiasPorEstrategia = todosComLimiteDeSeguranca(Ideia.class, "ideias").stream()
                 .collect(Collectors.groupingBy(i -> chaveDe(i.getEstrategiaId()), Collectors.counting()));
 
         List<DesempenhoEstrategiaResponse> desempenhos = new ArrayList<>();
-        for (Estrategia estrategia : estrategias.findAll()) {
+        for (Estrategia estrategia : todosComLimiteDeSeguranca(Estrategia.class, "estrategias")) {
             String chave = estrategia.getId();
             desempenhos.add(desempenho(chave, estrategia.getTitulo(), estrategia.getCategoria(),
                     projetosPorEstrategia.getOrDefault(chave, List.of()), ideiasPorEstrategia.getOrDefault(chave, 0L)));
@@ -144,7 +156,7 @@ public class DashboardService {
     private ResumoIdeiasResponse resumoIdeias(String estrategiaId) {
         List<Ideia> lista = Consultas.informado(estrategiaId)
                 ? mongo.find(new Query(Criteria.where("estrategiaId").is(estrategiaId)), Ideia.class)
-                : ideias.findAll();
+                : todosComLimiteDeSeguranca(Ideia.class, "ideias");
         Map<StatusIdeia, Long> porStatus = lista.stream()
                 .collect(Collectors.groupingBy(Ideia::getStatus, Collectors.counting()));
         long aprovadas = porStatus.getOrDefault(StatusIdeia.APROVADA, 0L);

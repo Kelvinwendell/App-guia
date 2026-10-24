@@ -54,3 +54,6 @@ app:
     # Protege login (forca bruta) e os endpoints de IA (custo por chamada a um provedor pago).
     login-por-minuto: ${RATE_LIMIT_LOGIN_POR_MINUTO:10}
     ia-por-minuto: ${RATE_LIMIT_IA_POR_MINUTO:10}
+  dashboard:
+    # Teto de seguranca: acima disso o dashboard passa a nao refletir mais o total real.
+    limite-registros-agregacao: ${DASHBOARD_LIMITE_REGISTROS:5000}

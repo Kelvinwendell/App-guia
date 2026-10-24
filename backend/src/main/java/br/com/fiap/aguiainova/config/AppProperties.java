@@ -15,7 +15,8 @@ public record AppProperties(
         @Valid @NotNull Security security,
         @Valid @NotNull Seed seed,
         @Valid @NotNull Ai ai,
-        @Valid @NotNull RateLimit rateLimit) {
+        @Valid @NotNull RateLimit rateLimit,
+        @Valid @NotNull Dashboard dashboard) {
 
     public record Jwt(@NotBlank String secret, @Min(1) long expirationMinutes, @NotBlank String issuer) {
     }
@@ -42,5 +43,9 @@ public record AppProperties(
 
     /** Limites de requisições por minuto, por chave (e-mail no login, id de usuário na IA). */
     public record RateLimit(@Min(1) int loginPorMinuto, @Min(1) int iaPorMinuto) {
+    }
+
+    /** Teto de documentos lidos por agregação do dashboard, para não carregar a coleção inteira na memória. */
+    public record Dashboard(@Min(1) int limiteRegistrosAgregacao) {
     }
 }
