@@ -122,7 +122,7 @@ private fun ResumoDoProjeto(projeto: Projeto) {
             Text(projeto.descricao, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo(projeto.status.rotulo, projeto.status.cor())
-                Selo(projeto.etapa.rotulo, AguiaCores.TextoSecundario)
+                Selo(projeto.etapa.rotulo, MaterialTheme.colorScheme.onSurfaceVariant)
                 if (projeto.atrasado) Selo("Atrasado", AguiaCores.Erro)
             }
             BarraProgresso(projeto.progresso)

@@ -11,5 +11,6 @@ class AguiaInovaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        container.aquecerServidor()
     }
 }

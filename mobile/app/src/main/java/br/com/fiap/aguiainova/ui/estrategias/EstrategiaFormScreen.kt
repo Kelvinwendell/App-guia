@@ -230,7 +230,7 @@ private fun ConteudoDaAnalise(analise: AnaliseEstrategia) {
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Selo("Nota ${analise.nota}/100", corDaNota)
-        Selo(if (analise.geradaPorIa) "IA · ${analise.fonte.lowercase()}" else "Regras", AguiaCores.TextoSecundario)
+        Selo(if (analise.geradaPorIa) "IA · ${analise.fonte.lowercase()}" else "Regras", MaterialTheme.colorScheme.onSurfaceVariant)
     }
     Text(analise.resumo, fontWeight = FontWeight.SemiBold)
     if (analise.pontosFortes.isNotEmpty()) {

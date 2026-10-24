@@ -102,6 +102,8 @@ carência. Caso contrário, `EM_DIA`. Reavaliar uma ideia pela IA não conta com
 | GET | `/api/dashboard/evolucao?estrategiaId=&projetoId=` | Retorno por mês e acumulado (gráfico de colunas/linha) |
 
 ### IA
+As chamadas de IA que gastam a cota do provedor (`chat`, `insights` e as três de estratégia) são limitadas **por usuário, num balde único**: `RATE_LIMIT_IA_POR_MINUTO` (padrão 10 por minuto); acima disso a resposta é **429**.
+
 | Método | Rota | Perfil | Descrição |
 |---|---|---|---|
 | GET | `/api/ia/status` | \* | Se há provedor configurado, qual e qual modelo |

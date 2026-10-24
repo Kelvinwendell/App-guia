@@ -237,7 +237,7 @@ private fun Indicadores(resumo: ResumoDashboard) {
         CartaoIndicador("Redução de custos", Formatadores.percentual(resumo.reducaoCustosMedia), AguiaCores.Alerta, Modifier.weight(1f))
     }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CartaoIndicador("Projetos", resumo.totalProjetos.toString(), AguiaCores.TextoSecundario, Modifier.weight(1f))
+        CartaoIndicador("Projetos", resumo.totalProjetos.toString(), MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
         CartaoIndicador("Atrasados", resumo.projetosAtrasados.toString(), if (resumo.projetosAtrasados > 0) AguiaCores.Erro else AguiaCores.Sucesso, Modifier.weight(1f))
     }
 }

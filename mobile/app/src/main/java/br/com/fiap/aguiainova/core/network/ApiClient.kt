@@ -32,6 +32,7 @@ class ApiClient(
         /** Substituida a cada requisicao pelo BaseUrlInterceptor. */
         const val URL_TEMPORARIA = "http://localhost/"
         const val TEMPO_CONEXAO_SEGUNDOS = 15L
-        const val TEMPO_LEITURA_SEGUNDOS = 60L
+        // Cobre a subida a frio da API (hospedagem gratuita hiberna quando ociosa).
+        const val TEMPO_LEITURA_SEGUNDOS = 120L
     }
 }

@@ -73,7 +73,7 @@ fun ConteudoAssistente(vm: AssistenteViewModel, modifier: Modifier = Modifier) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Enviar",
-                    tint = if (podeEnviar) AguiaCores.Primaria else AguiaCores.TextoSecundario.copy(alpha = 0.5f)
+                    tint = if (podeEnviar) AguiaCores.Primaria else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
         }

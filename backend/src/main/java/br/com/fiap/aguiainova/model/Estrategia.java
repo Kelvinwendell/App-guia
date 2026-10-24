@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import br.com.fiap.aguiainova.model.enums.StatusEstrategia;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "estrategias")
@@ -15,6 +16,7 @@ public class Estrategia extends DocumentoBase {
     private String descricao;
     private String categoria;
     private String campanha;
+    @Indexed
     private StatusEstrategia status;
     private List<String> metas = new ArrayList<>();
     private LocalDate inicio;

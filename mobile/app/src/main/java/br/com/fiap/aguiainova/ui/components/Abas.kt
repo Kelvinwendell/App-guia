@@ -1,6 +1,7 @@
 package br.com.fiap.aguiainova.ui.components
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -39,7 +40,7 @@ fun AbasDaTela(
                     )
                 },
                 selectedContentColor = AguiaCores.Primaria,
-                unselectedContentColor = AguiaCores.TextoSecundario
+                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

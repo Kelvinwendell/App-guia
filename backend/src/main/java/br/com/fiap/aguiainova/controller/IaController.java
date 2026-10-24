@@ -11,6 +11,7 @@ import br.com.fiap.aguiainova.dto.response.LeituraSaudeResponse;
 import br.com.fiap.aguiainova.dto.response.RankingIaResponse;
 import br.com.fiap.aguiainova.dto.response.RascunhoEstrategiaResponse;
 import br.com.fiap.aguiainova.dto.response.StatusIaResponse;
+import br.com.fiap.aguiainova.security.UsuarioLogado;
 import br.com.fiap.aguiainova.service.AssistenteIaService;
 import br.com.fiap.aguiainova.service.AvaliacaoIaService;
 import br.com.fiap.aguiainova.service.EstrategiaIaService;
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,36 +72,40 @@ public class IaController {
     @PostMapping("/chat")
     @PreAuthorize("hasRole('GESTOR')")
     @Operation(summary = "Conversa com o assistente de IA para escolher ideias e estruturar projetos (GESTOR)")
-    public ChatIaResponse conversar(@Valid @RequestBody ChatIaRequest req) {
-        return assistente.conversar(req);
+    public ChatIaResponse conversar(@Valid @RequestBody ChatIaRequest req,
+            @AuthenticationPrincipal UsuarioLogado usuario) {
+        return assistente.conversar(req, usuario);
     }
 
     @PostMapping("/estrategias/rascunho")
     @PreAuthorize("hasRole('LIDERANCA')")
     @Operation(summary = "Rascunho de estratégia (título, descrição, metas e período) a partir de um objetivo; "
             + "503 sem IA (LIDERANCA)")
-    public RascunhoEstrategiaResponse rascunharEstrategia(@Valid @RequestBody RascunhoEstrategiaRequest req) {
-        return estrategias.rascunhar(req);
+    public RascunhoEstrategiaResponse rascunharEstrategia(@Valid @RequestBody RascunhoEstrategiaRequest req,
+            @AuthenticationPrincipal UsuarioLogado usuario) {
+        return estrategias.rascunhar(req, usuario);
     }
 
     @PostMapping("/estrategias/analise")
     @PreAuthorize("hasRole('LIDERANCA')")
     @Operation(summary = "Critica uma estratégia antes de salvar: nota, melhorias e sobreposição (LIDERANCA)")
-    public AnaliseEstrategiaResponse analisarEstrategia(@Valid @RequestBody AnaliseEstrategiaRequest req) {
-        return estrategias.analisar(req);
+    public AnaliseEstrategiaResponse analisarEstrategia(@Valid @RequestBody AnaliseEstrategiaRequest req,
+            @AuthenticationPrincipal UsuarioLogado usuario) {
+        return estrategias.analisar(req, usuario);
     }
 
     @PostMapping("/estrategias/{id}/saude")
     @PreAuthorize("hasAnyRole('GESTOR','LIDERANCA')")
     @Operation(summary = "Lê a saúde de uma estratégia vigente: explicação e recomendações (GESTOR, LIDERANCA)")
-    public LeituraSaudeResponse lerSaudeDaEstrategia(@PathVariable String id) {
-        return estrategias.lerSaude(id);
+    public LeituraSaudeResponse lerSaudeDaEstrategia(@PathVariable String id,
+            @AuthenticationPrincipal UsuarioLogado usuario) {
+        return estrategias.lerSaude(id, usuario);
     }
 
     @PostMapping("/dashboard/insights")
     @PreAuthorize("hasRole('LIDERANCA')")
     @Operation(summary = "Gera insights e recomendações da IA sobre os resultados do dashboard (LIDERANCA)")
-    public InsightsIaResponse gerarInsights() {
-        return insights.gerar();
+    public InsightsIaResponse gerarInsights(@AuthenticationPrincipal UsuarioLogado usuario) {
+        return insights.gerar(usuario);
     }
 }

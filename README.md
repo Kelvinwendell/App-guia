@@ -1,8 +1,16 @@
-# Águia Inova — Sprint 2 (Backend + App integrados)
+# Águia Inova Sprint 2 (Backend + App integrados)
+
+[![Backend CI](https://github.com/Kelvinwendell/App-guia/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Kelvinwendell/App-guia/actions/workflows/backend-ci.yml)
 
 Gestão da inovação empresarial: operadores registram **ideias**, gestores as avaliam e transformam em **projetos**, e a
 liderança define **estratégias** e acompanha o **dashboard** (ROI, lucro, prazo, investimento, produtividade).
 O app Android da Sprint 1 agora conversa com uma API real (sem mocks, sem Firebase/Room) e há IA generativa opcional.
+
+## Em produção
+
+API rodando de graça (MongoDB Atlas + Render): **<https://app-guia.onrender.com>**
+(Swagger: `/swagger-ui/index.html` · saúde: `/actuator/health`). O plano gratuito do Render
+"dorme" após 15 min sem tráfego — a primeira chamada depois disso demora ~1 min para responder.
 
 ```
 .
@@ -10,6 +18,8 @@ O app Android da Sprint 1 agora conversa com uma API real (sem mocks, sem Fireba
 ├── mobile/                App Android — Kotlin, Jetpack Compose, MVVM, Retrofit
 ├── docker-compose.yml     Sobe MongoDB + API com um comando
 ├── .env.example           Variáveis de ambiente (copie para .env)
+├── .github/workflows/     CI do backend (GitHub Actions)
+├── .context/              Mapeamento de arquitetura e specs de hardening para produção (ver abaixo)
 ├── docs/                  Arquitetura, contrato da API e integração app ↔ API
 ├── scripts/smoke-test.ps1 Teste rápido de ponta a ponta contra a API em execução
 └── entregas/              APK de depuração e capturas de tela geradas do app real
@@ -39,8 +49,10 @@ Para recomeçar do zero (apaga o banco): `docker compose down -v && docker compo
 ### 2. App Android
 
 O app precisa saber o endereço da API. Ele já vem com um padrão para o emulador (`http://10.0.2.2:8080/`, que é o
-computador que hospeda o emulador) e o endereço pode ser trocado **dentro do app**, na tela de login ("Servidor: …"),
-sem recompilar — útil para aparelho físico (`http://IP-DO-SEU-PC:8080/`, mesma rede Wi-Fi).
+computador que hospeda o emulador) e, **em build de debug**, o endereço pode ser trocado dentro do app, na tela de
+login ("Servidor: …"), sem recompilar — útil para aparelho físico (`http://IP-DO-SEU-PC:8080/`, mesma rede Wi-Fi). Em
+build de release essa opção fica escondida (trocar de servidor em produção seria um vetor de phishing) — o endereço
+é fixado no momento do build via `-PapiBaseUrl=...`.
 
 - **Android Studio:** abra a pasta `mobile/` e execute (▶). Para fixar outro endereço no build:
   `./gradlew installDebug -PapiBaseUrl=http://192.168.0.10:8080/`
@@ -57,6 +69,29 @@ sem recompilar — útil para aparelho físico (`http://IP-DO-SEU-PC:8080/`, mes
   # -> ./saida/aguia-inova-debug.apk  e  ./saida/relatorio-testes
   ```
 - HTTP sem TLS só é permitido nos builds de *debug* (`app/src/debug/AndroidManifest.xml`). Em produção use HTTPS.
+
+#### Publicar um APK assinado (sem Play Store)
+
+A Google Play Console cobra uma taxa única de US$25 — evitável para distribuição direta via GitHub Releases.
+
+1. Gere sua própria keystore (guarde o `.jks` e a senha **fora do repositório**, nunca commitados):
+   ```bash
+   keytool -genkeypair -v -keystore aguia-inova-release.jks -alias aguia-inova \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+2. Builde o APK assinado, apontando para a API real:
+   ```bash
+   cd mobile
+   export RELEASE_KEYSTORE_PATH="/caminho/para/aguia-inova-release.jks"
+   export KEYSTORE_PASSWORD="sua-senha-da-keystore"
+   export KEY_ALIAS="aguia-inova"
+   export KEY_PASSWORD="sua-senha-da-keystore"
+   ./gradlew assembleRelease -PapiBaseUrl=https://app-guia.onrender.com/
+   # -> app/build/outputs/apk/release/app-release.apk
+   ```
+   (sem essas variáveis definidas, o build de release continua funcionando, só sai sem assinatura)
+3. GitHub → `Releases` → `Draft a new release` → anexe o `.apk` → publique. Alternativa com
+   atualização mais fácil para testadores: [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) (grátis).
 
 ### 3. Testar
 
@@ -118,7 +153,7 @@ Seis recursos, todos com o **gestor/liderança como decisor** (a IA só sugere):
    *em risco* ou *sem tração*) com os motivos e a próxima ação; a IA, sob demanda, explica o diagnóstico e recomenda o
    que fazer. A IA nunca altera o nível calculado.
 
-Para ligar a IA generativa, configure em `.env` (a chave fica **só no servidor**, nunca no app):
+Em produção (Render) as variáveis vão no painel do serviço: o passo a passo está em [`.context/deployment.md`](.context/deployment.md#ligando-a-ia-em-produção-passo-a-passo). Localmente, configure em `.env` (a chave fica **só no servidor**, nunca no app):
 
 | Provedor | `AI_PROVIDER` | `AI_BASE_URL` | Chave |
 |---|---|---|---|
@@ -132,18 +167,31 @@ gravada ou mostrada.
 
 ## Segurança em resumo
 
-JWT HS256 assinado com segredo do ambiente (mínimo de 32 bytes; a API não sobe com segredo curto), emissor validado,
-senhas com BCrypt (com *hash* fictício para não vazar por tempo se o e-mail existe), erros de autenticação/autorização
-em JSON padronizado (401/403), sem *stack trace* nas respostas, sessão do app guardada fora do backup do Android
-(`sessao.xml` excluído) e desconexão automática quando a API responde 401.
+JWT HS256 assinado com segredo do ambiente (mínimo de 32 bytes **e diferente de qualquer valor-padrão do repositório** —
+a API se recusa a subir caso contrário), emissor validado, senhas com BCrypt (com *hash* fictício para não vazar por
+tempo se o e-mail existe), erros de autenticação/autorização em JSON padronizado (401/403), sem *stack trace* nas
+respostas, rate limiting em login e nos endpoints de IA, sessão do app criptografada (`EncryptedSharedPreferences`) e
+fora do backup do Android, troca de servidor da API só disponível em build de debug, e desconexão automática quando a
+API responde 401.
 
 **Decisões que você deve conhecer**
 
 - `APP_ALLOW_ROLE_SELECTION=true` (padrão) permite escolher o perfil no cadastro, como no app da Sprint 1 — conveniente
   para a demonstração, mas qualquer pessoa vira Liderança. Em produção use `false`: todo cadastro vira Operador e só a
   Liderança promove usuários (`PATCH /api/usuarios/{id}/perfil`).
-- `APP_SEED_ENABLED=false` em produção (os usuários de teste têm senha conhecida).
-- O MongoDB do Compose não tem senha e só escuta em `127.0.0.1` — uso local. Em produção, use um MongoDB gerenciado.
+- `APP_SEED_ENABLED` já é `false` por padrão na aplicação (fail-safe) — só semeia se você definir explicitamente
+  `true` (é o que o `docker-compose.yml` de desenvolvimento faz). Nunca defina `true` em produção: os usuários de
+  teste têm senha conhecida (`123456`).
+- `RATE_LIMIT_LOGIN_POR_MINUTO`/`RATE_LIMIT_IA_POR_MINUTO` (padrão 10/min cada) limitam tentativas de login por
+  e-mail e chamadas de IA por usuário — protegem contra força bruta e contra custo descontrolado de API de IA.
+- `DASHBOARD_LIMITE_REGISTROS` (padrão 5000) é um teto de segurança nas agregações do dashboard, para nunca carregar
+  uma coleção inteira na memória por requisição.
+- O MongoDB do Compose não tem senha e só escuta em `127.0.0.1` — uso local. Em produção, use um MongoDB gerenciado
+  (este projeto usa MongoDB Atlas — ver [`.context/specs/009-mongodb-atlas-migration.md`](.context/specs/009-mongodb-atlas-migration.md)).
+
+Mapeamento completo da arquitetura, decisões e todo o trabalho de hardening para produção (com o que foi testado,
+riscos conhecidos e o que ainda falta) está em [`.context/`](.context/STATUS.md) — útil tanto para humano quanto para
+qualquer sessão de IA que for continuar o trabalho depois.
 
 ## Onde está cada pilar de POO
 

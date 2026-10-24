@@ -37,8 +37,10 @@ app:
     # false = todo cadastro publico vira OPERADOR e so a LIDERANCA promove usuarios.
     allow-role-selection: ${APP_ALLOW_ROLE_SELECTION:true}
   seed:
-    # Cria usuarios de teste e dados de exemplo quando o banco esta vazio.
-    enabled: ${APP_SEED_ENABLED:true}
+    # Cria usuarios de teste e dados de exemplo quando o banco esta vazio. Padrao false
+    # (fail-safe): esquecer esta variavel em producao nao pode, por si so, criar contas de
+    # senha conhecida. O docker-compose.yml de desenvolvimento liga isso explicitamente.
+    enabled: ${APP_SEED_ENABLED:false}
   ai:
     enabled: ${AI_ENABLED:true}
     # gemini = Google Gemini API | openai = qualquer API compativel com OpenAI (OpenRouter, GitHub Models...)
@@ -48,3 +50,10 @@ app:
     # vazio = URL padrao do provedor
     base-url: ${AI_BASE_URL:}
     timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+  rate-limit:
+    # Protege login (forca bruta) e os endpoints de IA (custo por chamada a um provedor pago).
+    login-por-minuto: ${RATE_LIMIT_LOGIN_POR_MINUTO:10}
+    ia-por-minuto: ${RATE_LIMIT_IA_POR_MINUTO:10}
+  dashboard:
+    # Teto de seguranca: acima disso o dashboard passa a nao refletir mais o total real.
+    limite-registros-agregacao: ${DASHBOARD_LIMITE_REGISTROS:5000}

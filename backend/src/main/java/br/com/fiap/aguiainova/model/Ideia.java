@@ -22,6 +22,7 @@ public class Ideia extends DocumentoBase {
     private String titulo;
     private String descricao;
     private String categoria;
+    @Indexed
     private StatusIdeia status;
     private Prioridade prioridade;
     private Autor autor;

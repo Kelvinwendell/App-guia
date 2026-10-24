@@ -8,6 +8,18 @@ plugins {
 // (tambem e possivel trocar em tempo de execucao, em "Servidor" na tela de login).
 val apiBaseUrl: String = providers.gradleProperty("apiBaseUrl").getOrElse("http://10.0.2.2:8080/")
 
+// Assinatura do build de release: lida so de variaveis de ambiente, nunca commitada.
+// Sem essas variaveis definidas, o release fica sem assinatura (continua buildando, util para
+// CI/teste local) - so publique via GitHub Release um APK assinado de verdade (ver SPEC-011
+// em .context/specs/011-mobile-distribution-no-play-store.md).
+val releaseKeystorePath: String? = System.getenv("RELEASE_KEYSTORE_PATH")
+val releaseKeystorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
+val releaseKeyAlias: String? = System.getenv("KEY_ALIAS")
+val releaseKeyPassword: String? = System.getenv("KEY_PASSWORD")
+val releaseAssinavel: Boolean =
+    !releaseKeystorePath.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()
+
 android {
     namespace = "br.com.fiap.aguiainova"
 
@@ -17,17 +29,31 @@ android {
         applicationId = "br.com.fiap.aguiainova"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
+    signingConfigs {
+        if (releaseAssinavel) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (releaseAssinavel) {
+                signingConfig = signingConfigs.getByName("release")
+            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -80,6 +106,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
+    implementation(libs.androidx.security.crypto)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -1,10 +1,13 @@
 package br.com.fiap.aguiainova.service;
 
+import java.time.Duration;
 import java.util.List;
 
+import br.com.fiap.aguiainova.config.AppProperties;
 import br.com.fiap.aguiainova.dto.request.ChatIaRequest;
 import br.com.fiap.aguiainova.dto.request.MensagemChatRequest;
 import br.com.fiap.aguiainova.dto.response.ChatIaResponse;
+import br.com.fiap.aguiainova.exception.LimiteDeRequisicoesExcedidoException;
 import br.com.fiap.aguiainova.exception.ServicoIndisponivelException;
 import br.com.fiap.aguiainova.integration.ai.LlmClient;
 import br.com.fiap.aguiainova.integration.ai.LlmIndisponivelException;
@@ -15,6 +18,8 @@ import br.com.fiap.aguiainova.model.enums.StatusIdeia;
 import br.com.fiap.aguiainova.repository.EstrategiaRepository;
 import br.com.fiap.aguiainova.repository.IdeiaRepository;
 import br.com.fiap.aguiainova.repository.ProjetoRepository;
+import br.com.fiap.aguiainova.security.LimitadorDeTaxa;
+import br.com.fiap.aguiainova.security.UsuarioLogado;
 import br.com.fiap.aguiainova.service.ia.ContextoAssistente;
 import br.com.fiap.aguiainova.service.ia.PromptsIa;
 import org.slf4j.Logger;
@@ -35,23 +40,33 @@ public class AssistenteIaService {
     private static final int IDEIAS_APROVADAS_NO_CONTEXTO = 10;
     private static final int PROJETOS_NO_CONTEXTO = 10;
     private static final Sort MAIS_RECENTES = Sort.by(Sort.Direction.DESC, "criadoEm");
+    private static final String MENSAGEM_LIMITE_EXCEDIDO =
+            "Muitas chamadas de IA em pouco tempo. Tente novamente em instantes.";
 
     private final LlmClient llm;
     private final PromptsIa prompts;
     private final IdeiaRepository ideias;
     private final EstrategiaRepository estrategias;
     private final ProjetoRepository projetos;
+    private final LimitadorDeTaxa limitador;
+    private final int limiteIaPorMinuto;
 
     public AssistenteIaService(LlmClient llm, PromptsIa prompts, IdeiaRepository ideias,
-            EstrategiaRepository estrategias, ProjetoRepository projetos) {
+            EstrategiaRepository estrategias, ProjetoRepository projetos, LimitadorDeTaxa limitador,
+            AppProperties props) {
         this.llm = llm;
         this.prompts = prompts;
         this.ideias = ideias;
         this.estrategias = estrategias;
         this.projetos = projetos;
+        this.limitador = limitador;
+        this.limiteIaPorMinuto = props.rateLimit().iaPorMinuto();
     }
 
-    public ChatIaResponse conversar(ChatIaRequest req) {
+    public ChatIaResponse conversar(ChatIaRequest req, UsuarioLogado usuario) {
+        if (!limitador.permitir("ia:" + usuario.id(), limiteIaPorMinuto, Duration.ofMinutes(1))) {
+            throw new LimiteDeRequisicoesExcedidoException(MENSAGEM_LIMITE_EXCEDIDO);
+        }
         List<MensagemLlm> conversa = prompts.montarConversa(historicoDe(req), req.mensagem());
         try {
             String resposta = llm.gerar(prompts.assistenteDoGestor(montarContexto(), conversa));

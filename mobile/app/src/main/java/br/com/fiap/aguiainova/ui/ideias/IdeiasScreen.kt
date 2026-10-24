@@ -241,7 +241,7 @@ private fun AvaliacaoDaIa(avaliacao: AvaliacaoIa) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Selo("Nota ${avaliacao.score}/100", AguiaCores.Primaria)
                 Selo("Sugere: ${avaliacao.prioridadeSugerida.rotulo}", avaliacao.prioridadeSugerida.cor())
-                Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", AguiaCores.TextoSecundario)
+                Selo(if (avaliacao.geradaPorIa) "IA · ${avaliacao.fonte.lowercase()}" else "Regras", MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 "Alinhamento com a estratégia: ${avaliacao.alinhamentoEstrategico}/100",

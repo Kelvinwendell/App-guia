@@ -1,0 +1,59 @@
+# Sobrepoe (nao funde) o application.yml principal para todo @SpringBootTest, porque o
+# Spring Boot carrega so o primeiro "classpath:/application.yml" que encontrar. Por isso este
+# arquivo precisa ter TODAS as chaves do original - nao só a que mudou - senao o bind de
+# AppProperties falha por falta de campo. A unica diferenca de proposito e app.jwt.secret:
+# usa o mesmo valor dos testes unitarios puros (Dados.SEGREDO_JWT), porque o valor-padrao de
+# desenvolvimento agora e rejeitado por SecurityConfig.chaveJwt (ver SPEC-001 em .context/specs).
+spring:
+  application:
+    name: aguia-inova-api
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/aguiainova}
+  data:
+    mongodb:
+      auto-index-creation: true
+      representation:
+        big-decimal: decimal128
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:segredo-de-teste-com-mais-de-32-bytes!!}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+    issuer: aguia-inova-api
+  security:
+    allow-role-selection: ${APP_ALLOW_ROLE_SELECTION:true}
+  seed:
+    enabled: ${APP_SEED_ENABLED:false}
+  ai:
+    enabled: ${AI_ENABLED:true}
+    provider: ${AI_PROVIDER:gemini}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:gemini-3.6-flash}
+    base-url: ${AI_BASE_URL:}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+  rate-limit:
+    # Alto o suficiente para nao interferir em testes que nao sao sobre rate limiting;
+    # RateLimitingIT sobrescreve com valores baixos via @TestPropertySource.
+    login-por-minuto: ${RATE_LIMIT_LOGIN_POR_MINUTO:1000}
+    ia-por-minuto: ${RATE_LIMIT_IA_POR_MINUTO:1000}
+  dashboard:
+    # Alto o suficiente para nao interferir em testes que nao sao sobre o limite do dashboard;
+    # DashboardLimiteDeSegurancaIT sobrescreve com um valor baixo via @TestPropertySource.
+    limite-registros-agregacao: ${DASHBOARD_LIMITE_REGISTROS:5000}

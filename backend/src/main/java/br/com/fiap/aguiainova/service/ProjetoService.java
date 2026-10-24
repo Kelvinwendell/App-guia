@@ -26,7 +26,6 @@ import br.com.fiap.aguiainova.security.UsuarioLogado;
 import br.com.fiap.aguiainova.util.Consultas;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
@@ -52,15 +51,9 @@ public class ProjetoService {
 
     public List<ProjetoResponse> listar(StatusProjeto status, EtapaProjeto etapa, String estrategiaId) {
         Query consulta = new Query().with(Sort.by(Sort.Direction.DESC, "criadoEm"));
-        if (status != null) {
-            consulta.addCriteria(Criteria.where("status").is(status));
-        }
-        if (etapa != null) {
-            consulta.addCriteria(Criteria.where("etapa").is(etapa));
-        }
-        if (Consultas.informado(estrategiaId)) {
-            consulta.addCriteria(Criteria.where("estrategiaId").is(estrategiaId));
-        }
+        Consultas.seIgual(consulta, "status", status);
+        Consultas.seIgual(consulta, "etapa", etapa);
+        Consultas.seInformado(consulta, "estrategiaId", estrategiaId);
         return paraResponses(mongo.find(consulta, Projeto.class));
     }
 

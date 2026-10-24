@@ -28,7 +28,9 @@ public class Projeto extends DocumentoBase {
 
     private String nome;
     private String descricao;
+    @Indexed
     private StatusProjeto status;
+    @Indexed
     private EtapaProjeto etapa;
     private BigDecimal investimento;
     private LocalDate dataInicio;
