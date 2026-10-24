@@ -20,3 +20,27 @@ jobs:
       - name: Testes do backend
         working-directory: backend
         run: ./mvnw -B test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar deploy no Render
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Esperar a API subir
+        # O MongoDB nao precisa de um passo separado: auto-index-creation=true (application.yml)
+        # cria/atualiza os indices sozinho quando a API sobe. Este passo confirma que a API (e,
+        # por tabela, a conexao com o Mongo) ficou saudavel depois do deploy.
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS https://app-guia.onrender.com/actuator/health | grep -q '"status":"UP"'; then
+              echo "API no ar e saudavel."
+              exit 0
+            fi
+            echo "Aguardando deploy terminar... ($i/30)"
+            sleep 20
+          done
+          echo "Timeout esperando a API subir depois do deploy."
+          exit 1
