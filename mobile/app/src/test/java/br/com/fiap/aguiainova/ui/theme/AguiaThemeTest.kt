@@ -1,6 +1,7 @@
 package br.com.fiap.aguiainova.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
 import org.junit.Assert.assertEquals
@@ -22,7 +23,7 @@ class AguiaThemeTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private fun lerDoTema(leitor: () -> Color): Color {
+    private fun lerDoTema(leitor: @Composable () -> Color): Color {
         var cor: Color? = null
         compose.setContent { AguiaTheme { cor = leitor() } }
         compose.waitForIdle()
